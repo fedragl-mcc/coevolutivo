@@ -1,22 +1,25 @@
 import random
 ########################################
-# receives??????????????????
+# receives
 #   type (string)
+#   population (list) content: chromosome vector (list)
 #   selection types                    
 #       roulette_selection             
 #       tournament_selection           
 #       uniform_selection              
 #######################################
-def selection(type,population):
+def selection_s(type,population):
     population = population
     if type=="uniform":
-        uniform(population)
+        p1,p2 = uniform(population)
     
     elif type == "roulette":
-        roulette()
+        p1,p2 = roulette()
     
     elif type=="tournament":
-        tournament()
+        p1,p2 = tournament()
+
+    return p1,p2
 
 def uniform(population):
     parent1,parent2 = random.choices(population, k=2)
