@@ -1,7 +1,8 @@
 import random
-import ML_module
-from selection_ga import selection
-import crossover_module
+import classifier
+from selection_ga import selection_s
+from crossover_ga import selection_c
+from classifier import Classifier
 
 import time
 
@@ -33,7 +34,7 @@ class genetic_algorithm:
         genes = [0, 1]
 
         # Create an class instance for the dataset choosing between a path (repository_path) and a uci repository (repository) code 
-        ip_ml = ML_module.ModeloML(self.repository,self.repository_path)
+        ip_ml = classifier.ModeloML(self.repository,self.repository_path)
         ip_ml.dataset_PATH() #set dataset to get the number of features = chromosome_size
         self.chromosome_size=ip_ml.features
 
@@ -65,18 +66,14 @@ class genetic_algorithm:
     #   sends: ?????????? type: string, population?????? 
     #   return parent1,parent2
     def selection(self):
-        parent1, parent2 = selection(self.s_type, self.population[0])
+        parent1, parent2 = selection_s(self.s_type, self.population[0])
         return parent1,parent2
 
     #   crossover
-    #   return offspring1, offspring2
+    #   sends type: string, parent1: chromosome vector, parent2: chromosome vector, cross probability: float
+    #   return offspring1: chromosome vector, offspring2: chromosome vector
     def crossover(self, parent1, parent2):
-        if self.c_type == "uniform":
-            offspring1, offspring2 = ga_crossover_module.uniform_crossover(parent1,parent2,self.cross)
-
-        elif self.c_type == "two_point":
-            offspring1, offspring2 = ga_crossover_module.two_point(parent1,parent2,self.cross)
-
+        offspring1, offspring2 = selection_c(self.c_type,parent1,parent2,self.cross)
         return offspring1, offspring2
 
     #   mutation
