@@ -1,5 +1,4 @@
-#ML libraries
-#module where prediction is done, other classifiers can be add
+#   module where prediction is done, other classifiers can be add
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
