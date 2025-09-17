@@ -1,4 +1,3 @@
-import random
 ########################################
 # receives
 #   type (string)
@@ -8,6 +7,7 @@ import random
 #       tournament_selection           
 #       uniform_selection              
 #######################################
+import random
 def selection_s(type,population):
     population = population
     if type=="uniform":

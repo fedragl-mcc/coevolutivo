@@ -1,3 +1,4 @@
+"""classifier module, uses models.py and preprocessing.py"""
 # modulo_ml.py
 import time
 import csv

@@ -1,10 +1,10 @@
-import random
-
 ###########################################
 #   crossover                             #
 #   uniform_crossover                     #
 #   two_point                             #
 ###########################################
+import random
+
 def selection_c(type,p1,p2,probability):
     parent1 = p1
     parent2 = p2
