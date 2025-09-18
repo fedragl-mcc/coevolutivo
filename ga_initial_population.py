@@ -15,13 +15,8 @@ def chromosome_creation(c_size):
         chromosome.append(random.choice(genes))
     return chromosome
 
-def dataset(path):
-    # Create an class instance for the dataset choosing between a path (repository_path) and a uci repository (repository) code 
-    dataset = Classifier(path)
-    return dataset
 
 def initial_population(population_size, path):
-    population = []
     individuals=[]
     accs=[]
     aucs=[]
@@ -30,7 +25,7 @@ def initial_population(population_size, path):
     dataset = Classifier(path)
     c_size = dataset.features
 
-    while len(population) <= population_size:
+    while len(individuals) <= population_size:
         individual = chromosome_creation(c_size)
 
         #call methods from class classifier for fitness evaluation 
@@ -49,7 +44,7 @@ def initial_population(population_size, path):
         else:
             ind=ind-1
 
-    population = [individuals,accs,aucs,f1s]
+    population = individuals,accs,aucs,f1s
 
     return population
 
