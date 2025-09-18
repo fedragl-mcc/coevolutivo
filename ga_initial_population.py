@@ -2,6 +2,8 @@
     initial population currently being created: randomly
     population: list where all well performing chromosomes are going to be stored
     genes:      binary elements to choose from to create chromosome
+    receives: population size, path
+    returns: population = [[individuals][accuracy][auc][f1]]
 """
 import random
 from classifier import Classifier
@@ -20,6 +22,11 @@ def dataset(path):
 
 def initial_population(population_size, path):
     population = []
+    individuals=[]
+    accs=[]
+    aucs=[]
+    f1s=[]
+
     dataset = Classifier(path)
     c_size = dataset.features
 
@@ -35,9 +42,14 @@ def initial_population(population_size, path):
         # evaluate chromosoma
         fitness = dataset.accuracy
         if fitness > .5:
-            population.append(individual)	#	agregar cromosoma a la poblacion
+            individuals.append(individual)	#	agregar cromosoma a la poblacion
+            accs.append(dataset.accuracy)
+            aucs.append(dataset.auc)
+            f1s.append(dataset.f1_score)
         else:
             ind=ind-1
+
+    population = [individuals,accs,aucs,f1s]
 
     return population
 

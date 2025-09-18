@@ -1,54 +1,55 @@
 ########################################
 # receives
 #   type (string)
-#   population (list) content: chromosome vector (list)
+#   population (list) content: chromosome vectors (list)
 #   selection types                    
 #       roulette_selection             
 #       tournament_selection           
-#       uniform_selection              
+#       uniform_selection      
+# returns
+#   parent1/p1 (index)
+#   parent2/p2 (index)       
 #######################################
 import random
 def selection_s(type,population):
-    population = population
+    size = len(population)
+
     if type=="uniform":
-        p1,p2 = uniform(population)
+        p1,p2 = uniform(size)
     
     elif type == "roulette":
-        p1,p2 = roulette()
+        p1,p2 = roulette(population,size)
     
     elif type=="tournament":
-        p1,p2 = tournament()
+        p1,p2 = tournament(population,size)
 
     return p1,p2
 
-def uniform(population):
-    parent1,parent2 = random.choices(population, k=2)
-    return parent1,parent2
+def uniform(size):
+    p1,p2 = random.choices(range(size), k=2)
+    return p1,p2
 
-def roulette(pop_fitness):
-    """selección por ruleta"""
-    #   evaluar el fitness de toda la poblacion
-    fitness=sum(pop_fitness[1])
+def roulette(population,size):
+    #   calcular la probabilidad de cada individuo
+    fitness=sum(population[1])
     probabilities=[]
-    for _ in range (0,len(pop_fitness[1])):
-        probabilities.append(pop_fitness[1][_]/fitness)
-    parent1,parent2 = random.choices(pop_fitness[0], weights=probabilities, k=2)
-    return parent1,parent2
+    for _ in range (size):
+        probabilities.append(population[1][_]/fitness)
 
-def tournament(xy_values):
-    opt1,opt2,opt3,opt4 = random.sample(range(len(xy_values[0])), k=4)
-    if xy_values[1][opt1] > xy_values[1][opt2]:
-        parent1 = xy_values[0][opt1]
-    else:
-        parent1 = xy_values[0][opt2]
-    if xy_values[1][opt3] > xy_values[1][opt4]:
-        parent2 = xy_values[0][opt3]
-    else:
-        parent2 = xy_values[0][opt4]
+    p1,p2 = random.choices(range(size),weights=probabilities,k=2)
+    return p1,p2
+
+def tournament(population,size):
+    opt1,opt2,opt3,opt4 = random.sample(range(size), k=4)
+
+    parent1 = max(opt1, opt2, key=lambda i: population[1][i])
+    parent2 = max(opt3, opt4, key=lambda i: population[1][i])
+
     return parent1,parent2
 
 
 if __name__ == "__main__":
     poblacion = ['A', 'B', 'C', 'D']
     fitness = [0.2, 0.5, 0.9, 0.4]
-    print(tournament([poblacion,fitness]))
+    population=[poblacion,fitness]
+    print(roulette(population,4))

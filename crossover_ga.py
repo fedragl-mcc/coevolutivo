@@ -1,4 +1,5 @@
 ###########################################
+#   receives: type (string), p1/p2 binaryvector (list), probability (float)
 #   crossover                             #
 #   uniform_crossover                     #
 #   two_point                             #
@@ -6,10 +7,6 @@
 import random
 
 def selection_c(type,p1,p2,probability):
-    parent1 = p1
-    parent2 = p2
-    probability = probability
-
     if type=="uniform":
         offspring1,offspring2 = uniform(p1,p2,probability)
     
@@ -22,6 +19,7 @@ def uniform(parent1, parent2, cross):
     # Verify that both parents have the same length
     if len(parent1) != len(parent2):
         raise ValueError("Parents must be of same lenght")
+    
     # Generate two children using uniform crossover
     offspring1 = []
     offspring2 = []
@@ -54,4 +52,5 @@ def two_point(parent1,parent2,cross):
     return offspring1, offspring2
 
 if __name__ == "__main__":
-    pass
+    o1,o2=two_point([0,1,1,0,1,0],[0,0,0,1,1,1],.8)
+    print(o1,o2)
