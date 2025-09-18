@@ -11,6 +11,9 @@ class Models:
         
         
     def Select_model(self,model):
+        #   wbcd (diagnostic)
+        self.y_train = self.y_train.astype(int)
+        #______________________________________
         if model == "SVM":
             y_pred=self.SVM()
 
@@ -43,9 +46,6 @@ class Models:
         return y_pred
         
     def KNN(self):
-        #   wbcd (diagnostic)
-        self.y_train = self.y_train.astype(int)
-
         try:
             modelo_KNN = KNeighborsClassifier() #   revisar aqui la hiperparametrizacion
             modelo_KNN.fit(self.X_train, self.y_train)

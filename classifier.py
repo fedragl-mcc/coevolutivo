@@ -33,7 +33,7 @@ class Classifier:
         self.Data_preprocess()
 
         #   model
-        self.model = "KNN"  # Chosen ML model
+        self.model = None  # Chosen ML model
 
         #   splits
         self.X_train = None
@@ -54,6 +54,7 @@ class Classifier:
         self.df=self.data.df
         self.X=self.data.X
         self.y=self.data.y
+        self.features=self.data.features
 
     #   sample splits
     def TT_split(self):
@@ -76,7 +77,7 @@ class Classifier:
     def Classif_evaluation(self):
         #   answer to the "ValueError: Classification metrics can't handle a mix of unknown and binary targets"
         #had to use astype bc self.y_test is dtype=object even after .to_numpy(), also had to save it to themselves again otherwise change does not happen
-        self.y_pred = self.y_pred.astype(int)    
+        #self.y_pred = self.y_pred.astype(int)    
         self.y_test = self.y_test.astype(int).to_numpy()
         #_______________  
 
@@ -88,6 +89,7 @@ if __name__ == "__main__":
     print("Machinelearning starting...")
     test = Classifier('D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv')
     chromosome=[1,0,1,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    test.model="SVM"
     test.Training(chromosome)
     print(test.y_train)
     print(test.X_train)
