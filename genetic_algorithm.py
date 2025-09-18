@@ -10,7 +10,7 @@ import time
 
 class genetic_algorithm:
     def __init__(self,path,population,model):
-        self.repository_path = path
+        self.path = path
         self.model=model
 
         #   genetic algorithm parameters
@@ -47,7 +47,7 @@ class genetic_algorithm:
             chromosome[mutation_point] = 0
         return chromosome
 
-    def set_dataset(self):
+    def set_dataset(self,path):
         self.dataset = Classifier(path)
 
     def fitness(self,chromosome):
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     species = genetic_algorithm(path,population,model='RF')
     species.s_type="uniform"
     species.c_type="uniform"
-    species.set_dataset()
+    species.set_dataset(path)
 
     #Define parameters for each instance [ ](modify) #randomly assign?
     generations=200
