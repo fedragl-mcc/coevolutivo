@@ -17,63 +17,23 @@ class genetic_algorithm:
 
         #   genetic algorithm parameters
         self.population = population
-        self.s_type = "uniform" #   type of selection
-        self.c_type = "uniform" #   type of cross
-        self.cross=.8
-        self.mutation_probability=.02
+        self.population_size = len(population)
+        self.s_type = None #   type of selection
+        self.c_type = None #   type of cross
+        self.cross = None
+        self.mutation_probability = None
 
         self.auc=None
         self.f1_score=None
         self.accuracy=None
 
-    def initial_population(self,population_size):
-        """
-        initial population currently being created: randomly
-        population: list where all well performing chromosomes are going to be stored
-        genes:      binary elements to choose from to create chromosome
-        """
-        population = []
-        genes = [0, 1]
-
-        # Create an class instance for the dataset choosing between a path (repository_path) and a uci repository (repository) code 
-        ip_ml = classifier.ModeloML(self.repository,self.repository_path)
-        ip_ml.dataset_PATH() #set dataset to get the number of features = chromosome_size
-        self.chromosome_size=ip_ml.features
-
-        size=1
-
-        while size <= population_size:
-            chromosome=[]
-            for _ in range(self.chromosome_size):    #   using index 
-                chromosome.append(random.choice(genes))
-
-            #call methods from class ml for fitness evaluation
-            ip_ml.dataset_PATH()
-            ip_ml.chromosome=chromosome                 #set the chromosome in the instance to select which features will be used
-            ip_ml.data_preprocessing()                  #process data with chromosome = active features
-            model = random.choice(['SVM','RF','KNN'])   #randomly select a ml model
-            ip_ml.ML_model(model)                       #evaluate performance = chromosome fitness
-
-            # evaluar chromosoma
-            fitness = ip_ml.accuracy 
-            if fitness > .5:
-                #print(ip_ml.accuracy)
-                #print(chromosome)
-                size+=1
-                population.append(chromosome)	#	agregar cromosoma a la poblacion
-
-        self.population=population
-
-    #   selection 
-    #   sends: ?????????? type: string, population?????? 
-    #   return parent1,parent2
     def selection(self):
-        parent1, parent2 = selection_s(self.s_type, self.population[0])
+    #   selection sends: type, population   |  return index
+        parent1, parent2 = selection_s(self.s_type, self.population)
         return parent1,parent2
 
     #   crossover
-    #   sends type: string, parent1: chromosome vector, parent2: chromosome vector, cross probability: float
-    #   return offspring1: chromosome vector, offspring2: chromosome vector
+    #   sends type: list, parent1: chromosome vector, parent2: chromosome vector, cross probability: float  |    return offspring1/2: chromosome vector
     def crossover(self, parent1, parent2):
         offspring1, offspring2 = selection_c(self.c_type,parent1,parent2,self.cross)
         return offspring1, offspring2
