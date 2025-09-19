@@ -39,7 +39,7 @@ def initial_population(population_size, path):
         if fitness > .5:
             individuals.append(individual)	#	agregar cromosoma a la poblacion
             accs.append(dataset.accuracy)
-            aucs.append(dataset.auc)
+            aucs.append(float(dataset.auc))
             f1s.append(dataset.f1_score)
         else:
             ind=ind-1

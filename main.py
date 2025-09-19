@@ -1,14 +1,13 @@
 from genetic_algorithm import genetic_algorithm
 from ga_initial_population import initial_population
 import random
-
+import time
 class Species:
     def __init__(self, path, population,selection,crossover):
         self.population=population
         self.species = genetic_algorithm(path,population=self.population,model=None)
         self.species.s_type=selection
         self.species.c_type=crossover
-        self.species.set_dataset(path)
 
     def generation(self,gen,mutation_probability,cross_probability,model):
         self.species.model=model
@@ -40,11 +39,21 @@ class Species:
             self.species.update_population(child2)
 
 if __name__ == "__main__":
+    start_time = time.time()
+    
     path='D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv'
     population = initial_population(60,path)
+    s1_crossp =.8
+    s1_mutatep=.2
     s1 = Species(path, population,selection="uniform",crossover="uniform")
     for _ in range (20):
         print('generation {}'.format(_))
-        s1.generation(_,.8,.2,"RF")
-    print(s1.population)
+        s1.generation(gen=_,mutation_probability=s1_mutatep,cross_probability=s1_crossp,model="RF")
+
+    end = time.time()
+    elapsed=end-start_time
+    print((end - start_time)/60)
+
+    for list in population:
+        print (list)
 

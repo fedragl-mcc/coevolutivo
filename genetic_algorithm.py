@@ -10,19 +10,23 @@ import time
 
 class genetic_algorithm:
     def __init__(self,path,population,model):
-        self.path = path
-        self.model=model
 
         #   genetic algorithm parameters
         self.population = population
         self.population_size = len(population)
+
+        #   genetic algorithm operators
         self.s_type = None #   type of selection
         self.c_type = None #   type of cross
         self.cross_probability = None
         self.mutation_probability = None
 
-        self.dataset = None
+        #set the dataset instance
+        self.dataset = Classifier(path)
+        #assign model
+        self.model=model
 
+        #metrics
         self.auc=None
         self.f1_score=None
         self.accuracy=None
@@ -47,9 +51,6 @@ class genetic_algorithm:
             chromosome[mutation_point] = 0
         return chromosome
 
-    def set_dataset(self,path):
-        self.dataset = Classifier(path)
-
     def fitness(self,chromosome):
     #   fitness evaluation receives: chromosome |   return metrics 
         self.dataset.model=self.model
@@ -60,7 +61,7 @@ class genetic_algorithm:
         auc=self.dataset.auc
         f1_score=self.dataset.f1_score
 
-        return accuracy,auc,f1_score
+        return accuracy,float(auc),f1_score
 
     def evaluate_population(self): 
         #topsis??
@@ -87,6 +88,13 @@ class genetic_algorithm:
             individual.append(new_individual[i])
             i+=1
 
+    def compare(self,child,index1,index2): #recibe el fitness nadamas
+            if child > self.population[1][index1]:
+                return True
+            elif child > self.population[1][index2]:
+                return True
+            else:
+                return False
 
     def update_species_population(self,individuals,size):
         del self.population[-size] 
@@ -97,28 +105,22 @@ class genetic_algorithm:
         individuals = random.sample(self.population, size) #stores them in a new list
         return individuals
 
-    def compare(self,child,index1,index2): #recibe el fitness nadamas
-        if child > self.population[1][index1]:
-            return True
-        elif child > self.population[1][index2]:
-            return True
-        else:
-            return False
-
 if __name__ == "__main__":
     start_time = time.time()
     print(start_time)
 
+    #   set path for dataset
     path='D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv'
+
     population = initial_population(60,path)
 
     species = genetic_algorithm(path,population,model='RF')
     species.s_type="uniform"
     species.c_type="uniform"
-    species.set_dataset(path)
 
-    #Define parameters for each instance [ ](modify) #randomly assign?
-    generations=200
+    generations=10
+
+    #Define parameters for each species
     species.cross_probability=.8
     mutation_probability=.02
 	#_______________________________________________________________________________________________________
@@ -142,7 +144,7 @@ if __name__ == "__main__":
         acc,auc,f1=species.fitness(child2)
         child2= child2,acc,auc,f1
 
-        #   revisar que eventualmente podria agregar al mismo padre form: (fitness,chromosome)
+        #   compare children to parents, add child1/child2 if its > either of the parents
         child = species.compare(child1[1],parent1,parent2)
         if child:
             species.update_population(child1)
