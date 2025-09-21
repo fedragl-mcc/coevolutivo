@@ -12,7 +12,7 @@ class genetic_algorithm:
     def __init__(self,path,population,model):
 
         #   genetic algorithm parameters
-        self.population = population
+        self.population = list(population)
         self.population_size = len(population)
 
         #   genetic algorithm operators
@@ -67,16 +67,7 @@ class genetic_algorithm:
         #topsis??
         #use topsis to know which individuals i am going to delete?
         #find out which metric gives me the best results in my species
-        auc_values=[]
-        acc_values=[]
-        f1_values=[]
-
-        for chromosome in self.population:
-            acc,auc,f1_score =self.fitness(chromosome)
-
-            acc_values.append(acc) #auc
-            auc_values.append(auc) #acc
-            f1_values.append(f1_score) #f1
+        pass
 
     def update_population(self,new_individual):
     #   update population   receives individual = [[chromosome],acc,auc,f1] | returns: none
