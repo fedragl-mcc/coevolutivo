@@ -1,5 +1,6 @@
 
 import random
+import numpy as np
 
 from ga_initial_population import initial_population
 from selection_ga import selection_s
