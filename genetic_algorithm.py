@@ -64,7 +64,7 @@ class genetic_algorithm:
 
         return accuracy,float(auc),f1_score
 
-    def topsis(population,weights=None): 
+    def topsis(self,population,weights=None): 
         chromosomes = population[0]
         criteria = np.array(population[1:])
     
@@ -105,8 +105,8 @@ class genetic_algorithm:
         for row in population:
             ranked_population.append([row[i] for i in ranking])
     
-        # Optionally, you can append the scores as a new row
-        ranked_population.append([scores[i] for i in ranking])
+        # # Optionally, you can append the scores as a new row
+        # ranked_population.append([scores[i] for i in ranking])
         return ranked_population
     
 

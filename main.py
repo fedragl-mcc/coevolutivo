@@ -1,5 +1,6 @@
-from genetic_algorithm import genetic_algorithm
+from genetic_algorithm import genetic_algorithm as ga
 from ga_initial_population import initial_population
+from topsis import topsis as topsis_ranking
 
 import random
 import time
@@ -10,7 +11,7 @@ class Species:
     def __init__(self, path, placeholder,selection,crossover):
         population = placeholder[1]
         self.population=copy.deepcopy(population)
-        self.species = genetic_algorithm(path,self.population,model=None)
+        self.species = ga(path,self.population,model=None)
         self.species.s_type=selection
         self.species.c_type=crossover
 
@@ -52,19 +53,11 @@ class Species:
         #add it to the log    
         self.diversity.append(improvement)
 
-    def topsis(self,weights):
-        topsis_ = self.species.topsis(weights)
-        return topsis_
+    def topsis(self,weights=None):
+        topsis_rank = topsis_ranking(self.population,weights)
+        return topsis_rank
 
-if __name__ == "__main__":
-    start_time = time.time()
-    now = datetime.datetime.now()
-
-    #create initial population, sending path and size
-    path='D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv'
-    size=60
-    population = initial_population(size,path)
-
+def operators_parameters():
     #operators parameters
     s1_crossp = random.choice([.2,.4,.8])
     s1_mutatep= random.choice([.8,.6,.2])
@@ -77,12 +70,26 @@ if __name__ == "__main__":
     select2 = random.choice(["uniform","tournament","roulette"])
     crossover2 = random.choice(["uniform","two_point"])
 
+    return s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2
+
+if __name__ == "__main__":
+    start_time = time.time()
+    now = datetime.datetime.now()
+
+    #create initial population, sending path and size
+    path='D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv'
+    size=60
+    population = initial_population(size,path)
+
+    s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2 = operators_parameters()
+
     #placeholder is used to send a tuple insteadof a list, refer to: https://web.archive.org/web/20200221224620id_/http://effbot.org/zone/default-values.htm
     s1 = Species(path, ("placeholder",population),selection=select1,crossover=crossover1)
     s2 = Species(path, ("placeholder",population),selection=select2,crossover=crossover2)
     
-    #competition variable
+    #competition variables
     competition = 0
+    winners=list()
 
     #coevolution generations
     for _ in range (200):
@@ -94,13 +101,44 @@ if __name__ == "__main__":
         #competencia aqui (diversity tells me how many times a better child was not created (maximum 2 by generation))
         d1=s1.diversity.copy()
         d2=s2.diversity.copy()
+        shared_population=[list]
 
 
-        if (d1[-5:].count(False))>3 or (d2[-5:].count(False))>3:
-            population1 = s1.topsis(s1.population)
-            population2 = s2.topsis(s2.population)
+        if (d1[-5:].count(False))>=3 or (d2[-5:].count(False))>=3:
+            #rank populations for each individual
+            population1 = s1.topsis()
+            population2 = s2.topsis()
+
+            #determine how many individuals are the 10%
+            percent=size//10
             
-    
+            # best individuals of each species
+            """revisar esto, se estan agregando mal, tal vez pensar que aqui sea mejor hacer la lista por fila y no columna """
+            for c,acc,auc,f1 in zip(population1[0][:percent],population1[1][:percent],population1[2][:percent],population1[3][:percent]):
+                shared_population[0].append(c)
+                shared_population[1].append(acc)
+                shared_population[2].append(auc)
+                shared_population[3].append(f1)
+                shared_population[4].append(1)
+            for c,acc,auc,f1 in zip(population2[0][:percent],population2[1][:percent],population2[2][:percent],population2[3][:percent]):
+                shared_population[0].append(c)
+                shared_population[1].append(acc)
+                shared_population[2].append(auc)
+                shared_population[3].append(f1)
+                shared_population[4].append(2)
+
+            # chop shared population to only the 10% best
+            shared_population= topsis_ranking(shared_population,shared=True)
+            shared_population= [shared_population[i][percent] for i in range(len(shared_population))]
+            
+            #log of which species had the most contribution
+            if shared_population[-1].count(1) > shared_population[-1].count(2):
+                winners.append(1)
+            else:
+                winners.append(2)
+
+            
+    print(winners)
     end = time.time()
     elapsed=(end-start_time) #seconds
     print(elapsed)
