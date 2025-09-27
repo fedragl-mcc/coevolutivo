@@ -2,8 +2,9 @@ import numpy as np
 def topsis(population,weights=None,shared=False): 
     chromosomes = population[0]
     if shared:
-        del population[-1]
-    criteria = np.array(population[1:])
+        criteria = np.array(population[1:-1])
+    else:
+        criteria = np.array(population[1:])
 
     # transpose: rows = individuals, cols = criteria
     decision_matrix = criteria.T  
@@ -36,12 +37,11 @@ def topsis(population,weights=None,shared=False):
     
     # Rank individuals
     ranking = np.argsort(-scores)  # descending
-    
+
     # ---- Rebuild population in ranked order ----
     ranked_population = []
     for row in population:
         ranked_population.append([row[i] for i in ranking])
 
     # # Optionally, you can append the scores as a new row
-    # ranked_population.append([scores[i] for i in ranking])
-    return ranked_population
+    # ranked_population.append([scores[i] for i in ranking    return ranked_population

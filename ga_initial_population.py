@@ -25,7 +25,7 @@ def initial_population(population_size, path):
     dataset = Classifier(path)
     c_size = dataset.features
 
-    while len(individuals) <= population_size:
+    while len(individuals) < population_size:
         individual = chromosome_creation(c_size)
 
         #call methods from class classifier for fitness evaluation 

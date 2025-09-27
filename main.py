@@ -52,6 +52,9 @@ class Species:
 
         #add it to the log    
         self.diversity.append(improvement)
+    
+    def repopulate(self, new_individual):
+        self.species.update_population(new_individual)
 
     def topsis(self,weights=None):
         topsis_rank = topsis_ranking(self.population,weights)
@@ -67,7 +70,7 @@ def operators_parameters():
     s2_crossp = random.choice([.3,.6,.9])
     s2_mutatep= random.choice([.7,.4,.1])
     model2 = random.choice(["RF","KNN","SVM"])
-    select2 = random.choice(["uniform","tournament","roulette"])
+    select2 = "roulette" #random.choice(["uniform","tournament","roulette"])
     crossover2 = random.choice(["uniform","two_point"])
 
     return s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2
@@ -101,8 +104,7 @@ if __name__ == "__main__":
         #competencia aqui (diversity tells me how many times a better child was not created (maximum 2 by generation))
         d1=s1.diversity.copy()
         d2=s2.diversity.copy()
-        shared_population=[list]
-
+        shared_population=[list(),list(),list(),list(),list()]
 
         if (d1[-5:].count(False))>=3 or (d2[-5:].count(False))>=3:
             #rank populations for each individual
@@ -112,8 +114,7 @@ if __name__ == "__main__":
             #determine how many individuals are the 10%
             percent=size//10
             
-            # best individuals of each species
-            """revisar esto, se estan agregando mal, tal vez pensar que aqui sea mejor hacer la lista por fila y no columna """
+            # add best individuals of each species into a pool population
             for c,acc,auc,f1 in zip(population1[0][:percent],population1[1][:percent],population1[2][:percent],population1[3][:percent]):
                 shared_population[0].append(c)
                 shared_population[1].append(acc)
@@ -126,19 +127,32 @@ if __name__ == "__main__":
                 shared_population[2].append(auc)
                 shared_population[3].append(f1)
                 shared_population[4].append(2)
-
-            # chop shared population to only the 10% best
-            shared_population= topsis_ranking(shared_population,shared=True)
-            shared_population= [shared_population[i][percent] for i in range(len(shared_population))]
+            
+            #apply ranking to the pool population
+            shared_population = topsis_ranking(population=shared_population,shared=True) #they chop the part where i say who is the winner species
             
             #log of which species had the most contribution
-            if shared_population[-1].count(1) > shared_population[-1].count(2):
+            if shared_population[-1][:percent//2].count(1) > shared_population[-1][:percent//2].count(2):
                 winners.append(1)
             else:
                 winners.append(2)
 
+            #delete the last column for the "species" as i already kept the log 
+            del shared_population[-1]
+            elite_population=[list(),list(),list(),list()]
+
+            # chop shared population to only the 10% best, store it in "elite population" by individual of the form (chromosome, acc,auc,f1), this log is reloaded each time the competition criteria is met
+            for i in range (percent//2):
+                elite_population[i].append([shared_population[_][i] for _ in range (len(shared_population))])
+            
+            #mix population, call update population
+            for individual in elite_population:
+                s1.repopulate(individual)
+                s2.repopulate(individual)
             
     print(winners)
+    print(f'Species 1 operators Cross:{s1_crossp} Mutation:{s1_mutatep} Model:{model1} Selection: {select1} Crossover probability{crossover1}')
+    print(f'Species 1 operators Cross:{s2_crossp} Mutation:{s2_mutatep} Model:{model2} Selection: {select2} Crossover probability{crossover2}')
     end = time.time()
     elapsed=(end-start_time) #seconds
     print(elapsed)

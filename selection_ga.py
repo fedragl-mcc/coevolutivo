@@ -11,9 +11,7 @@
 #   parent2/p2 (index)       
 #######################################
 import random
-def selection_s(type,population):
-    size = len(population)
-
+def selection_s(type,population,size):
     if type=="uniform":
         p1,p2 = uniform(size)
     
