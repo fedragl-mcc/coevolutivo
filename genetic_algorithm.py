@@ -14,7 +14,7 @@ class genetic_algorithm:
 
         #   genetic algorithm parameters
         self.population = list(population)
-        self.population_size = len(population)
+        self.population_size = len(population[0])
 
         #   genetic algorithm operators
         self.s_type = None #   type of selection
@@ -81,15 +81,6 @@ class genetic_algorithm:
                 return True
             else:
                 return False
-
-    def update_species_population(self,individuals,size):
-        del self.population[-size] 
-        self.population = self.population + individuals
-
-    def take_from_population(self,size):
-        #takes individuals from the population
-        individuals = random.sample(self.population, size) #stores them in a new list
-        return individuals
 
 if __name__ == "__main__":
     start_time = time.time()

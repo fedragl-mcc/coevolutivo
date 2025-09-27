@@ -70,7 +70,7 @@ def operators_parameters():
     s2_crossp = random.choice([.3,.6,.9])
     s2_mutatep= random.choice([.7,.4,.1])
     model2 = random.choice(["RF","KNN","SVM"])
-    select2 = "roulette" #random.choice(["uniform","tournament","roulette"])
+    select2 = random.choice(["uniform","tournament","roulette"])
     crossover2 = random.choice(["uniform","two_point"])
 
     return s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2
@@ -139,28 +139,31 @@ if __name__ == "__main__":
 
             #delete the last column for the "species" as i already kept the log 
             del shared_population[-1]
-            elite_population=[list(),list(),list(),list()]
 
             # chop shared population to only the 10% best, store it in "elite population" by individual of the form (chromosome, acc,auc,f1), this log is reloaded each time the competition criteria is met
-            for i in range (percent//2):
-                elite_population[i].append([shared_population[_][i] for _ in range (len(shared_population))])
+            elite_population=[]
+            for i in range (percent):
+                elite_population.append([])
+                elite_population[i]=[shared_population[_][i] for _ in range (len(shared_population))]
             
             #mix population, call update population
             for individual in elite_population:
                 s1.repopulate(individual)
                 s2.repopulate(individual)
-            
-    print(winners)
-    print(f'Species 1 operators Cross:{s1_crossp} Mutation:{s1_mutatep} Model:{model1} Selection: {select1} Crossover probability{crossover1}')
-    print(f'Species 1 operators Cross:{s2_crossp} Mutation:{s2_mutatep} Model:{model2} Selection: {select2} Crossover probability{crossover2}')
+    
+    print(f'Number of competitions {len(winners)}')
+    print(f'Winner of each competition {winners}')
+    print(f'Species 1 operators Cross:{crossover1} Mutation:{s1_mutatep} Model:{model1} Selection: {select1} Crossover probability: {s1_crossp}')
+    print(f'Species 1 operators Cross:{crossover2} Mutation:{s2_mutatep} Model:{model2} Selection: {select2} Crossover probability: {s2_crossp}')
+
     end = time.time()
     elapsed=(end-start_time) #seconds
     print(elapsed)
 
-    csv_print=False
+    csv_print=True
     if csv_print:
         #   Open the CSV file in append mode
-        wbcd = open('D:\Fedra\iCloudDrive\Mcc\Tesis\Experimentacion\ouputs\wbcd_coevolutivo_topsis.csv', 'a', newline='')
+        wbcd = open('D:\Fedra\iCloudDrive\Mcc\Tesis\Experimentacion\ouputs\wbcd_coevolutivo_pool_27092025.csv', 'a', newline='')
         #   Create a CSV writer
         writer = csv.writer(wbcd)
         
@@ -191,8 +194,7 @@ if __name__ == "__main__":
             acc = population1[1][_]
             auc = population1[2][_]
             f1 = population1[3][_]
-            topsis = population1[4][_]
-            writer.writerow([chromosome,acc,auc,f1,topsis])
+            writer.writerow([chromosome,acc,auc,f1])
 
         #out csv of population
         writer.writerow(['species 2'])
@@ -202,8 +204,7 @@ if __name__ == "__main__":
             acc = population2[1][_]
             auc = population2[2][_]
             f1 = population2[3][_]
-            topsis = population2[4][_]
-            writer.writerow([chromosome,acc,auc,f1,topsis])
+            writer.writerow([chromosome,acc,auc,f1])
         
         now = datetime.datetime.now()  
         version = now.strftime("%Y-%m-%d %H:%M:%S")

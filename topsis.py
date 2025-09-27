@@ -44,4 +44,5 @@ def topsis(population,weights=None,shared=False):
         ranked_population.append([row[i] for i in ranking])
 
     # # Optionally, you can append the scores as a new row
-    # ranked_population.append([scores[i] for i in ranking    return ranked_population
+    # ranked_population.append([scores[i] for i in ranking])
+    return ranked_population
