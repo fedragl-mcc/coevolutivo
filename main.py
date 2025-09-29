@@ -80,7 +80,7 @@ if __name__ == "__main__":
     now = datetime.datetime.now()
 
     #create initial population, sending path and size
-    path='D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\\breast_cancer_uci\\breast_cancer.csv'
+    path='D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\seer_breast\SEER_excelEDIT.csv'
     size=60
     population = initial_population(size,path)
 
