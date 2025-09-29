@@ -16,6 +16,7 @@ class Species:
         self.species.c_type=crossover
 
         self.diversity = list() #flag tells if during a generation there was an improvement in either of the children
+        self.gen_fitness=list()
 
     def generation(self,gen,mutation_probability,cross_probability,model):
         self.species.model=model
@@ -50,14 +51,15 @@ class Species:
             self.species.update_population(child2)
             improvement = True
 
-        #add it to the log    
+        #add to logs    
         self.diversity.append(improvement)
+        self.gen_fitness.append(self.species.evaluate_population())
     
     def repopulate(self, new_individual):
         self.species.update_population(new_individual)
 
     def topsis(self,weights=None):
-        topsis_rank = topsis_ranking(self.population,weights)
+        topsis_rank = topsis_ranking(self.species.population,weights)
         return topsis_rank
 
 def operators_parameters():
@@ -80,7 +82,7 @@ if __name__ == "__main__":
     now = datetime.datetime.now()
 
     #create initial population, sending path and size
-    path='D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\seer_breast\SEER_excelEDIT.csv'
+    path='D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv'
     size=60
     population = initial_population(size,path)
 
@@ -171,7 +173,7 @@ if __name__ == "__main__":
     csv_print=False
     if csv_print:
         #   Open the CSV file in append mode
-        wbcd = open('D:\Fedra\iCloudDrive\Mcc\Tesis\Experimentacion\ouputs\wbcd_coevolutivo_pool_27092025.csv', 'a', newline='')
+        wbcd = open('D:\Fedra\iCloudDrive\Mcc\Tesis\Experimentacion\ouputs\wbcd_coevolutivo_pool_wbdc_29092025.csv', 'a', newline='')
         #   Create a CSV writer
         writer = csv.writer(wbcd)
         
@@ -179,6 +181,9 @@ if __name__ == "__main__":
         version = now.strftime("%Y-%m-%d %H:%M:%S")
         writer.writerow([version])
         print(version)
+        writer.writerow([f'Species 1 operators Cross:{crossover1} Mutation:{s1_mutatep} Model:{model1} Selection: {select1} Crossover probability: {s1_crossp}'])
+        writer.writerow([f'Species 2 operators Cross:{crossover2} Mutation:{s2_mutatep} Model:{model2} Selection: {select2} Crossover probability: {s2_crossp}'])
+
         
         #   Headings
         heading = ['chromosome','acc','auc','f1','time']

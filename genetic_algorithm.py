@@ -63,6 +63,16 @@ class genetic_algorithm:
         f1_score=self.dataset.f1_score
 
         return accuracy,float(auc),f1_score
+    
+    #   evaluate population using the means only, broach subject using other methods such as nsgaII
+    def evaluate_population(self):
+        #   receives nothing, uses self only
+        #   returns the means of that population
+        acc_mean = sum(self.population[1])/self.population_size
+        auc_mean = sum(self.population[2])/self.population_size
+        f1_mean = sum(self.population[3])/self.population_size
+        gen_averages=[acc_mean,auc_mean,f1_mean]
+        return gen_averages
 
     def update_population(self,new_individual):
     #   update population   receives individual = [[chromosome],acc,auc,f1] | returns: none

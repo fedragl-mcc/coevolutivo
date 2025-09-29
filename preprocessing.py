@@ -33,17 +33,17 @@ class Preprocessing:
     #   read CSV and turn into a dataframe
     def ReadCSV(self):
         #wisconsin
-        self.df = pd.read_csv(self.path, header=0) #0: bc_coimbra   |   None: wbdc, bc_uci
+        self.df = pd.read_csv(self.path, header=None) #0: bc_coimbra,seer   |   None: wbdc, bc_uci
 
     #   target & feature split 
     # (WBCD)
-    # def TF_Split(self):
-        # #   WBC
-        # self.df.iloc[:,1] = self.df.iloc[:,1].map({'M': 1, 'B': 0}) #   Convertir la columna 'Diagnóstico' a valores numéricos
-        # self.y=self.df.iloc[:,1].copy() # set target column into its own df
+    def TF_Split(self):
+        #   WBC
+        self.df.iloc[:,1] = self.df.iloc[:,1].map({'M': 1, 'B': 0}) #   Convertir la columna 'Diagnóstico' a valores numéricos
+        self.y=self.df.iloc[:,1].copy() # set target column into its own df
         
-        # self.X=self.df.drop(self.df.columns[[0,1]], axis=1).copy() #dropping id[0] and target[1]
-        # self.features = len(self.X.columns)
+        self.X=self.df.drop(self.df.columns[[0,1]], axis=1).copy() #dropping id[0] and target[1]
+        self.features = len(self.X.columns)
 
     # # (bc coimbra)
     # def TF_Split(self):
@@ -53,11 +53,11 @@ class Preprocessing:
     #     self.features = len(self.X.columns)
     
     # (SEER)
-    def TF_Split(self):
-        self.y=self.df.iloc[:,-1].copy() # set target column into its own df
+    # def TF_Split(self):
+    #     self.y=self.df.iloc[:,-1].copy() # set target column into its own df
         
-        self.X=self.df.drop(self.df.columns[[-1]], axis=1).copy() #dropping id[0] and target[1]
-        self.features = len(self.X.columns)
+    #     self.X=self.df.drop(self.df.columns[[-1]], axis=1).copy() #dropping id[0] and target[1]
+    #     self.features = len(self.X.columns)
     
     #bcuci_yugos
     # def TF_Split(self):
@@ -146,7 +146,7 @@ class Preprocessing:
         self.TF_Split()
         self.Missing_values()
         self.Standardization()
-        self.Outlier_detection() #    uncomment: wbdc,bc_coimbria  |    comment for bc_uci
+        self.Outlier_detection() #    uncomment: wbdc,bc_coimbria,seer  |    comment for bc_uci
 
 if __name__ == "__main__":
     print("Preprocessing starting...")
