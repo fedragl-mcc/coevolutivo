@@ -1,4 +1,5 @@
-"""classifier module, uses models.py and preprocessing.py"""
+"""classifier module, uses models.py and preprocessing.py
+    last edit: 28/09/2025"""
 # modulo_ml.py
 import time
 import csv
@@ -75,10 +76,10 @@ class Classifier:
         self.y_pred =classifier.Select_model(self.model)
 
     def Classif_evaluation(self):
-        #   answer to the "ValueError: Classification metrics can't handle a mix of unknown and binary targets"
-        #had to use astype bc self.y_test is dtype=object even after .to_numpy(), also had to save it to themselves again otherwise change does not happen
-        #self.y_pred = self.y_pred.astype(int)    
-        self.y_test = self.y_test.astype(int).to_numpy()
+        #   WBDC: answer to the "ValueError: Classification metrics can't handle a mix of unknown and binary targets"
+        #   had to use astype bc self.y_test is dtype=object even after .to_numpy(), also had to save it to themselves again otherwise change does not happen
+        self.y_pred = self.y_pred.astype(int)##comment: wbdc     uncomment:bc_uci
+        # self.y_test = self.y_test.astype(int).to_numpy() #uncomment: wbdc     comment:bc_uci
         #_______________  
 
         self.accuracy = accuracy_score(self.y_test, self.y_pred)

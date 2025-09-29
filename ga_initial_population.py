@@ -24,6 +24,7 @@ def initial_population(population_size, path):
 
     dataset = Classifier(path)
     c_size = dataset.features
+    ind=0
 
     while len(individuals) < population_size:
         individual = chromosome_creation(c_size)

@@ -1,6 +1,11 @@
 """
     module where preprocessing is done
     none of the functions return anything
+    _______
+    wbdc: D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv
+    bcuci: D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\bcuci_yugos\breast-cancer.csv
+    _______________________
+    edit 28/09/2025: previous versions of this only work for wisconsin breast cancer 
 """
 import csv
 import copy
@@ -10,6 +15,7 @@ import numpy as np
 #data processing libraries
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder
 
 class Preprocessing:
     def __init__(self, path):
@@ -27,13 +33,33 @@ class Preprocessing:
         #wisconsin
         self.df = pd.read_csv(self.path, header=None)
 
-    #   target & feature split
-    def TF_Split(self):
-        #   WBC
-        self.df.iloc[:,1] = self.df.iloc[:,1].map({'M': 1, 'B': 0}) #   Convertir la columna 'Diagnóstico' a valores numéricos
-        self.y=self.df.iloc[:,1].copy() # set target column into its own df
+    #   target & feature split 
+    # (WBCD)
+    # def TF_Split(self):
+        # #   WBC
+        # self.df.iloc[:,1] = self.df.iloc[:,1].map({'M': 1, 'B': 0}) #   Convertir la columna 'Diagnóstico' a valores numéricos
+        # self.y=self.df.iloc[:,1].copy() # set target column into its own df
         
-        self.X=self.df.drop(self.df.columns[[0,1]], axis=1).copy() #dropping id[0] and target[1]
+        # self.X=self.df.drop(self.df.columns[[0,1]], axis=1).copy() #dropping id[0] and target[1]
+        # self.features = len(self.X.columns)
+    
+    #bcuci_yugos
+    def TF_Split(self):
+
+        #mid point for range characteristics
+        for age,tumor,node,i in zip(self.df[1],self.df[3],self.df[4],range(len(self.df[3]))):
+            start, end = map(int, age.split('-'))
+            self.df.iloc[i,1] = (start + end) / 2
+            start, end = map(int, tumor.split('-'))
+            self.df.iloc[i,3] = (start + end) / 2
+            start, end = map(int, node.split('-'))
+            self.df.iloc[i,4] = (start + end) / 2
+        
+        # set target column into its own df, and apply label encoder
+        self.y=self.df.iloc[:,0].copy() 
+        
+        #dropping  target at [0] 
+        self.X=self.df.drop(self.df.columns[0], axis=1).copy() 
         self.features = len(self.X.columns)
 
     #   chromosome feature selection    
@@ -73,39 +99,52 @@ class Preprocessing:
         #__________________________
 
     #   standarization
+    #   wbdc
+    # def Standardization(self):
+        # #   Seleccionar columnas categoricas
+        # num_cols = self.X.select_dtypes(include=['number']).columns  # Solo numéricos
+
+        # #   label encoder
+        # le = LabelEncoder()
+        # for col in self.X.select_dtypes(exclude=['number']).columns:
+        #     self.X[col] = le.fit_transform(self.X[col])
+
+        # #   standard scalation
+        # escalador = StandardScaler()
+        # self.X[num_cols] = escalador.fit_transform(self.X[num_cols])
+        
+    #   bc_uci
     def Standardization(self):
-        #   Seleccionar columnas categoricas
-        num_cols = self.X.select_dtypes(include=['number']).columns  # Solo numéricos
+        #   Seleccionar columnas 
+        obj_cols = self.X.columns
 
         #   label encoder
         le = LabelEncoder()
-        for col in self.X.select_dtypes(exclude=['number']).columns:
+        for col in obj_cols:
             self.X[col] = le.fit_transform(self.X[col])
+        self.y = le.fit_transform(self.y)
 
-        #   standard scalation
-        escalador = StandardScaler()
-        self.X[num_cols] = escalador.fit_transform(self.X[num_cols])
     
     def Preprocess(self):
         self.ReadCSV()
         self.TF_Split()
         self.Missing_values()
-        self.Outlier_detection()
+        # self.Outlier_detection() #    uncomment for wbdc  comment for bc_uci
         self.Standardization()
 
 if __name__ == "__main__":
     print("Preprocessing starting...")
-    test = Preprocessing(path='D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv')
-    test.chromosome=[1,0,1,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    test = Preprocessing(path='D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\\breast_cancer_uci\\breast_cancer.csv') #double bacl slash bc of the letter b? \\b
+    # test.chromosome=[1,0,1,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1]
     test.ReadCSV()
     test.TF_Split()
     print(test.df)
     test.Missing_values()
     print(test.df)
     print(test.X)
-    test.Outlier_detection()
-    print(test.X)
     test.Standardization()
     print(test.X)
-    test.Chromosome_FS()
-    print(test.X_chromosome)
+    # test.Outlier_detection()
+    # print(test.X)
+    # test.Chromosome_FS()
+    # print(test.X_chromosome)

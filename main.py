@@ -69,7 +69,7 @@ def operators_parameters():
     crossover1 = random.choice(["uniform","two_point"])
     s2_crossp = random.choice([.3,.6,.9])
     s2_mutatep= random.choice([.7,.4,.1])
-    model2 = random.choice(["RF","KNN","SVM"])
+    model2 =  random.choice(["RF","KNN","SVM"])
     select2 = random.choice(["uniform","tournament","roulette"])
     crossover2 = random.choice(["uniform","two_point"])
 
@@ -80,11 +80,16 @@ if __name__ == "__main__":
     now = datetime.datetime.now()
 
     #create initial population, sending path and size
-    path='D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv'
+    path='D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\\breast_cancer_uci\\breast_cancer.csv'
     size=60
     population = initial_population(size,path)
 
+    #determine operators thru a function
     s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2 = operators_parameters()
+    
+    #print operators
+    print(f'Species 1 operators Cross:{crossover1} Mutation:{s1_mutatep} Model:{model1} Selection: {select1} Crossover probability: {s1_crossp}')
+    print(f'Species 2 operators Cross:{crossover2} Mutation:{s2_mutatep} Model:{model2} Selection: {select2} Crossover probability: {s2_crossp}')
 
     #placeholder is used to send a tuple insteadof a list, refer to: https://web.archive.org/web/20200221224620id_/http://effbot.org/zone/default-values.htm
     s1 = Species(path, ("placeholder",population),selection=select1,crossover=crossover1)
@@ -152,15 +157,18 @@ if __name__ == "__main__":
                 s2.repopulate(individual)
     
     print(f'Number of competitions {len(winners)}')
-    print(f'Winner of each competition {winners}')
-    print(f'Species 1 operators Cross:{crossover1} Mutation:{s1_mutatep} Model:{model1} Selection: {select1} Crossover probability: {s1_crossp}')
-    print(f'Species 1 operators Cross:{crossover2} Mutation:{s2_mutatep} Model:{model2} Selection: {select2} Crossover probability: {s2_crossp}')
+    #   print(f'Winner of each competition {winners}')
+    if winners.count(1) > winners.count(2):
+        print(s1.population)
+    else:
+        print(s2.population) 
+
 
     end = time.time()
     elapsed=(end-start_time) #seconds
     print(elapsed)
 
-    csv_print=True
+    csv_print=False
     if csv_print:
         #   Open the CSV file in append mode
         wbcd = open('D:\Fedra\iCloudDrive\Mcc\Tesis\Experimentacion\ouputs\wbcd_coevolutivo_pool_27092025.csv', 'a', newline='')
