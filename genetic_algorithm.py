@@ -76,7 +76,7 @@ class genetic_algorithm:
 
     def update_population(self,new_individual,index=None):
     #   update population   receives individual = [[chromosome],acc,auc,f1] | returns: none
-        if index!= None:
+        if index == None:
             index = random.choice(range(self.population_size))
 
         for i, individual in zip(range(self.population_size),self.population):
@@ -85,7 +85,7 @@ class genetic_algorithm:
             i+=1
 
     def compare(self,child,index1,index2): #recibe el fitness nadamas, regresa el indice del primero k fue mejor
-            if child > self.population[1][index1] & child > self.population[1][index2]:
+            if (child > self.population[1][index1]) & (child > self.population[1][index2]):
                 return True
             else:
                 return False
