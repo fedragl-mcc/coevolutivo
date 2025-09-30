@@ -74,20 +74,18 @@ class genetic_algorithm:
         gen_averages=[acc_mean,auc_mean,f1_mean]
         return gen_averages
 
-    def update_population(self,new_individual):
+    def update_population(self,new_individual,index=None):
     #   update population   receives individual = [[chromosome],acc,auc,f1] | returns: none
-        #randomly delete from the population???
-        i=0
-        index = random.choice(range(self.population_size))
-        for individual in self.population:
+        if index!= None:
+            index = random.choice(range(self.population_size))
+
+        for i, individual in zip(range(self.population_size),self.population):
             del individual[index]
             individual.append(new_individual[i])
             i+=1
 
-    def compare(self,child,index1,index2): #recibe el fitness nadamas
-            if child > self.population[1][index1]:
-                return True
-            elif child > self.population[1][index2]:
+    def compare(self,child,index1,index2): #recibe el fitness nadamas, regresa el indice del primero k fue mejor
+            if child > self.population[1][index1] & child > self.population[1][index2]:
                 return True
             else:
                 return False
