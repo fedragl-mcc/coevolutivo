@@ -1,7 +1,8 @@
+
 from genetic_algorithm import genetic_algorithm as ga
 from ga_initial_population import initial_population
 from topsis import topsis as topsis_ranking
-
+from FAST import Dominance 
 import random
 import time
 import csv
@@ -9,57 +10,86 @@ import datetime
 import copy
 
 class Species:
-    def __init__(self, path, placeholder,selection,crossover):
+    def __init__(self, path, placeholder,selection,crossover,population_size):
+        #   set initial population in the species instance
         population = placeholder[1]
         self.population=copy.deepcopy(population)
+        self.population_size = population_size
+
+        #   create instance of genetic algorithm for the species
         self.species = ga(path,self.population,model=None)
+
+        #   set initial selection and crossover
         self.species.s_type=selection
         self.species.c_type=crossover
 
+        #create flag variables
         self.diversity = list() #flag tells if during a generation there was an improvement in either of the children
         self.gen_fitness=list() #keeps a log of the means of each generation
 
+    #   generate children, default is 2
+    def generate(self,children=2):
+        children_bag=list()
+        for i in range(children//2):
+            #   select two chromosomes for crossover, index: int()
+            parent1, parent2 = self.species.selection()
+
+            #   perform crossover to generate two new chromosomes (index [0]: chromosome )
+            child1, child2 = self.species.crossover(self.species.population[0][parent1],self.species.population[0][parent2])
+
+            #   perform mutation on the two new chromosomes
+            if random.uniform(0, 1) < self.species.mutation_probability:
+                child1 = self.species.mutate(child1)
+            if random.uniform(0, 1) < self.species.mutation_probability:
+                child2 = self.species.mutate(child2)
+            
+            #   add children to the bag
+            children_bag.append(child1)
+            children_bag.append(child2)
+        return children_bag
+    
+    #   evaluate children: receives a list of chromosomes only, returns a list 
+    def evaluate_children(self,children_bag):
+        #   create population variable size = 4 ([chromosome, acc, auc, f1])
+        size = 4 
+        new_individuals = [list() for i in range(size)]
+
+        #   evaluate the children population
+        for child in children_bag:
+        #   evaluate each children
+            acc,auc,f1=self.species.fitness(child)
+            #   append metrics to their lists
+            new_individuals[0].append(child)
+            new_individuals[1].append(acc)
+            new_individuals[2].append(auc)
+            new_individuals[3].append(f1)
+        return new_individuals
+    
+    #   a generation
     def generation(self,gen,mutation_probability,cross_probability,model):
         #   set parameters
         self.species.model=model
         self.species.cross_probability=cross_probability
+        self.species.mutation_probability=mutation_probability
 
-        #   select two chromosomes for crossover, index: int()
-        parent1, parent2 = self.species.selection()
+        #   generate children: determine the amount of children that are to be created, default is 2
+        children_bag=self.generate(60)
 
-        #   perform crossover to generate two new chromosomes (index [0]: chromosome )
-        child1, child2 = self.species.crossover(self.species.population[0][parent1],self.species.population[0][parent2])
+        #   evaluate the children an store their fitness
+        children_bag=self.evaluate_children(children_bag)
 
-        #   perform mutation on the two new chromosomes
-        if random.uniform(0, 1) < mutation_probability:
-            child1 = self.species.mutate(child1)
-        if random.uniform(0, 1) < mutation_probability:
-            child2 = self.species.mutate(child2)
+        #   evaluate against the parent population???
+        #   hacer dominancia con FAST, usar crowding
+        size =self.population_size
+        d=Dominance()
+        self.population = d.FAST(children_bag,population,size)
 
-        #   determine children fitness (reusing variables)
-        acc,auc,f1=self.species.fitness(child1)
-        child1= child1,acc,auc,f1
-        acc,auc,f1=self.species.fitness(child2)
-        child2= child2,acc,auc,f1
+        # #stablish flag as false (meaning if there is/isnt improvement ) 
+        # improvement = False
 
-        #stablish flag as false (meaning if there is/isnt improvement ) 
-        improvement = False
-
-        #   update substitution of parent in order (1,2)
-        #   first child
-        child = self.species.compare(child1[1],parent1,parent2)
-        if child:
-            self.species.update_population(child1,parent1)
-            improvement = True
-        #   second child
-        child = self.species.compare(child2[1],parent1,parent2)
-        if child:
-            self.species.update_population(child2,parent2)
-            improvement = True
-
-        #add to logs    
-        self.diversity.append(improvement)  #   form: true/false
-        self.gen_fitness.append(self.species.evaluate_population()) #   form: [acc_mean,auc_mean,f1_mean]
+        # #add to logs    
+        # self.diversity.append(improvement)  #   form: true/false
+        # self.gen_fitness.append(self.species.evaluate_population()) #   form: [acc_mean,auc_mean,f1_mean]
     
     def repopulate(self, new_individual,index=None):
         self.species.update_population(new_individual,index)
@@ -99,17 +129,16 @@ if __name__ == "__main__":
     print(f'Species 1 operators Cross: {crossover1}   Mutation: {s1_mutatep}   Model: {model1}  Selection: {select1}    Crossover probability: {s1_crossp}')
     print(f'Species 2 operators Cross: {crossover2}   Mutation: {s2_mutatep}   Model: {model2}  Selection: {select2}    Crossover probability: {s2_crossp}')
 
-    #create instances
-    #placeholder is used to send a tuple insteadof a list, refer to: https://web.archive.org/web/20200221224620id_/http://effbot.org/zone/default-values.htm
-    s1 = Species(path, ("placeholder",population),selection=select1,crossover=crossover1)
-    s2 = Species(path, ("placeholder",population),selection=select2,crossover=crossover2)
+    #create instances placeholder is used to send a tuple insteadof a list, refer to: https://web.archive.org/web/20200221224620id_/http://effbot.org/zone/default-values.htm
+    s1 = Species(path, ("placeholder",population),selection=select1,crossover=crossover1,population_size=size)
+    s2 = Species(path, ("placeholder",population),selection=select2,crossover=crossover2,population_size=size)
     
     #competition variables
     competition = 0
     winners=list()
 
     #coevolution generations
-    for _ in range (1,201):
+    for _ in range (1,301):
         #   prints
         print('generation {}'.format(_))
 
@@ -118,33 +147,35 @@ if __name__ == "__main__":
         s2.generation(gen=_,mutation_probability=s2_mutatep,cross_probability=s2_crossp,model=model2)
 
         #   evaluation
-        if (_%5)==0:
-            #   get the fitness of the current generation 
-            curr_fit1=s1.gen_fitness[-1]
-            curr_fit2=s2.gen_fitness[-1]
+        # if (_%5)==0:
+        #     #   ge|t the fitness of the current generation 
+        #     curr_fit1=s1.gen_fitness[-1]
+        #     curr_fit2=s2.gen_fitness[-1]
 
-            #   create variables
-            shared_population=[list(),list(),list(),list(),list()]
-            diversity1=list()
-            diversity2=list()
+        #     #   create variables
+        #     shared_population=[list(),list(),list(),list(),list()]
+        #     diversity1=list()
+        #     diversity2=list()
 
-            #   get the values
-            for i in range(_-1,_-6,-1):
-                diversity1.append((s1.gen_fitness[i][0] < curr_fit1[0] )& (s1.gen_fitness[i][1] < curr_fit1[1]) & (s1.gen_fitness[i][2] < curr_fit1[2])) 
-                diversity2.append((s2.gen_fitness[i][0] < curr_fit2[0]) & (s2.gen_fitness[i][1] < curr_fit2[1]) & (s1.gen_fitness[i][2] < curr_fit2[2]) ) 
+        #     #   get the values
+        #     for i in range(_-1,_-6,-1):
+        #         diversity1.append((s1.gen_fitness[i][0] < curr_fit1[0] )& (s1.gen_fitness[i][1] < curr_fit1[1]) & (s1.gen_fitness[i][2] < curr_fit1[2])) 
+        #         diversity2.append((s2.gen_fitness[i][0] < curr_fit2[0]) & (s2.gen_fitness[i][1] < curr_fit2[1]) & (s1.gen_fitness[i][2] < curr_fit2[2]) ) 
             
-            #   counters
-            diversity1 = diversity1.count(True)
-            diversity2 = diversity2.count(True)
+        #     #   counters
+        #     diversity1 = diversity1.count(True)
+        #     diversity2 = diversity2.count(True)
 
-            #   comparisons
-            if diversity1 > 3 or diversity2 >3:
-                print("sharedpopulation")
-                winners.append(1)
+        #     #   comparisons
+        #     if diversity1 > 3 or diversity2 >3:
+        #         print("sharedpopulation")
+        #         winners.append(1)
+    
     #   timer
     end = time.time()
     elapsed=(end-start_time) #seconds
     print(elapsed)
+
 
     #   print to see the population:
     population_print = False
@@ -159,10 +190,10 @@ if __name__ == "__main__":
                 print(f'chromosome: {chromosome}     acc: {acc}     auc: {auc}      f1: {f1}')
 
     #   print to csv
-    csv_print=True
+    csv_print=False
     if csv_print:
         #   Open the CSV file in append mode
-        wbcd = open('D:\Fedra\iCloudDrive\Mcc\Tesis\Experimentacion\ouputs\wbcd_no_sharedpopulation.csv', 'a', newline='')
+        wbcd = open('D:\Fedra\iCloudDrive\Mcc\Tesis\Experimentacion\ouputs\wbcd_300_pop.csv', 'a', newline='')
         #   Create a CSV writer
         writer = csv.writer(wbcd)
         

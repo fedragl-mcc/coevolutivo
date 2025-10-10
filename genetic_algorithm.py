@@ -22,12 +22,12 @@ class genetic_algorithm:
         self.cross_probability = None
         self.mutation_probability = None
 
-        #set the dataset instance
+        #   set the dataset instance
         self.dataset = Classifier(path)
         #assign model
         self.model=model
 
-        #metrics
+        #   metrics
         self.auc=None
         self.f1_score=None
         self.accuracy=None
