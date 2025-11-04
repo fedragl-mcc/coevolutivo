@@ -1,71 +1,111 @@
+#   import modules part of the algoritthm
 from genetic_algorithm import genetic_algorithm as ga
 from ga_initial_population import initial_population
 from topsis import topsis as topsis_ranking
+from FAST import Dominance 
 
 import random
 import time
+import copy
+#   data handling
 import csv
 import datetime
-import copy
+
 class Species:
-    def __init__(self, path, placeholder,selection,crossover):
+    def __init__(self, path, placeholder,selection,crossover,population_size):
+        #   set initial population into the species instances
         population = placeholder[1]
         self.population=copy.deepcopy(population)
+        self.population_size=population_size
+
+        #   create instance of genetic algorithm
         self.species = ga(path,self.population,model=None)
+
+        #   create children bag variable size = 4 ([chromosome, acc, auc, f1])
+        self.new_individuals = [list() for i in range(len(self.population))]
+
+        #   set initial selection an crossover
         self.species.s_type=selection
         self.species.c_type=crossover
 
-        self.diversity = list() #flag tells if during a generation there was an improvement in either of the children
-        self.gen_fitness=list() #keeps a log of the means of each generation
+    #   generate children, default is 2
+    def generate(self,children):
+        children_bag=list()
+        for i in range(children//2):
+            #   select two chromosomes for crossover, index: int()
+            parent1, parent2 = self.species.selection()
 
-    def generation(self,gen,mutation_probability,cross_probability,model):
+            #   perform crossover to generate two new chromosomes (index [0]: chromosome )
+            child1, child2 = self.species.crossover(self.species.population[0][parent1],self.species.population[0][parent2])
+
+            #   perform mutation on the two new chromosomes
+            if random.uniform(0, 1) < self.species.mutation_probability:
+                child1 = self.species.mutate(child1)
+            if random.uniform(0, 1) < self.species.mutation_probability:
+                child2 = self.species.mutate(child2)
+            
+            #   add children to the bag
+            children_bag.append(child1)
+            children_bag.append(child2)
+        return children_bag
+    
+    #   evaluate children: receives a list of chromosomes only, returns a list 
+    def evaluate_children(self,children_bag):
+        #   evaluate the children population
+        for child in children_bag:
+        #   evaluate each children
+            acc,auc,f1=self.species.fitness(child)
+            #   append metrics to their lists
+            self.new_individuals[0].append(child)
+            self.new_individuals[1].append(acc)
+            self.new_individuals[2].append(auc)
+            self.new_individuals[3].append(f1)
+    
+    def compare_populations(self,children_bag):
+        averages = [list() for i in range (len(self.population)-1)]
+        averages = [sum(i)/len(i) for i in (self.population[1:])]
+
+        new_pop=[list() for i in range (len(self.population))] 
+
+        #   compare the children against the mean of the population
+        comparison=list()
+        for i in range (len(children_bag[0])):     #   iterate as many children are there are in the bag
+            child = [x[i] for x in children_bag[1:]]
+            for metric,average in zip(child,averages):
+                comparison.append(metric > average)
+            #   determine if it is added or not, in at least
+            if comparison.count(True) >= round((len(self.population)-1)/2):
+                for fitness in new_pop:
+                    fitness.append(children_bag[i])
+            comparison.clear()
+        return new_pop
+
+    #   a generation
+    def generation(self,gen,mutation_probability,cross_probability,model,children=2):
         #   set parameters
         self.species.model=model
         self.species.cross_probability=cross_probability
+        self.species.mutation_probability=mutation_probability
 
-        #   select two chromosomes for crossover, index: int()
-        parent1, parent2 = self.species.selection()
+        #   generate children: determine the amount of children that are to be created, default is 2
+        children_bag=self.generate(children)
 
-        #   perform crossover to generate two new chromosomes (index [0]: chromosome )
-        child1, child2 = self.species.crossover(self.species.population[0][parent1],self.species.population[0][parent2])
+        #   evaluate the children an store their fitness
+        children_bag=self.evaluate_children(children_bag)
 
-        #   perform mutation on the two new chromosomes
-        if random.uniform(0, 1) < mutation_probability:
-            child1 = self.species.mutate(child1)
-        if random.uniform(0, 1) < mutation_probability:
-            child2 = self.species.mutate(child2)
-
-        #   determine children fitness (reusing variables)
-        acc,auc,f1=self.species.fitness(child1)
-        child1= child1,acc,auc,f1
-        acc,auc,f1=self.species.fitness(child2)
-        child2= child2,acc,auc,f1
-
-        #stablish flag as false (meaning if there is/isnt improvement ) 
-        improvement = False
-
-        #   update substitution of parent in order (1,2)
-        #   first child
-        child = self.species.compare(child1[1],parent1,parent2)
-        if child:
-            self.species.update_population(child1,parent1)
-            improvement = True
-        #   second child
-        child = self.species.compare(child2[1],parent1,parent2)
-        if child:
-            self.species.update_population(child2=parent2)
-            improvement = True
-
-        #add to logs    
-        self.diversity.append(improvement)  #   form: true/false
-        self.gen_fitness.append(self.species.evaluate_population()) #   form: [acc_mean,auc_mean,f1_mean]
-    
     def repopulate(self, new_individual):
         self.species.update_population(new_individual)
 
     def topsis(self,weights=None):
         topsis_rank = topsis_ranking(self.species.population,weights)
         return topsis_rank
+    
+    def merge_populations(self):
+        #   use fast
+        d=Dominance()
+        self.population=d.FAST(self.new_individuals,self.population,self.population_size)
+        self.new_individuals.clear()
+        return
 
 def operators_parameters():
     #operators parameters
@@ -87,52 +127,37 @@ if __name__ == "__main__":
     now = datetime.datetime.now()
 
     #create initial population, sending path and size
-    path='D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv'
+    path='D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv'
     size=60
     population = initial_population(size,path)
 
     #determine operators thru a function
     s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2 = operators_parameters()
     
-    #print operators
+    #   output: print operators
     print(f'Species 1 operators Cross:{crossover1} Mutation:{s1_mutatep} Model:{model1} Selection: {select1} Crossover probability: {s1_crossp}')
     print(f'Species 2 operators Cross:{crossover2} Mutation:{s2_mutatep} Model:{model2} Selection: {select2} Crossover probability: {s2_crossp}')
 
-    #placeholder is used to send a tuple insteadof a list, refer to: https://web.archive.org/web/20200221224620id_/http://effbot.org/zone/default-values.htm
-    s1 = Species(path, ("placeholder",population),selection=select1,crossover=crossover1)
-    s2 = Species(path, ("placeholder",population),selection=select2,crossover=crossover2)
+    #   create: instances, <placeholder> is used to send a tuple instead of a list, refer to: https://web.archive.org/web/20200221224620id_/http://effbot.org/zone/default-values.htm
+    s1 = Species(path, ("placeholder",population),selection=select1,crossover=crossover1,population_size=size)
+    s2 = Species(path, ("placeholder",population),selection=select2,crossover=crossover2,population_size=size)
     
     #competition variables
     competition = 0
     winners=list()
 
     #coevolution generations
-    for _ in range (1,201):
+    for _ in range (1,21):
         print('generation {}'.format(_))
+
         #genetic algorithm / generation of children
         s1.generation(gen=_,mutation_probability=s1_mutatep,cross_probability=s1_crossp,model=model1)
         s2.generation(gen=_,mutation_probability=s2_mutatep,cross_probability=s2_crossp,model=model2)
 
 
         if (_%5)==0:
-
-            curr_fit1=s1.gen_fitness[-1]
-            curr_fit2=s2.gen_fitness[-1]
-
-            shared_population=[list(),list(),list(),list(),list()]
-            diversity1=list()
-            diversity2=list()
-
-            for i in range(_-1,_-6,-1):
-                diversity1.append((s1.gen_fitness[i][0] < curr_fit1[0] )& (s1.gen_fitness[i][1] < curr_fit1[1]) & (s1.gen_fitness[i][2] < curr_fit1[2])) 
-                diversity2.append((s2.gen_fitness[i][0] < curr_fit2[0]) & (s2.gen_fitness[i][1] < curr_fit2[1]) & (s1.gen_fitness[i][2] < curr_fit2[2]) ) 
-            
-            diversity1 = diversity1.count(True)
-            diversity2 = diversity2.count(True)
-
-            if diversity1 > 3 or diversity2 >3:
-                print("sharedpopulation")
-                winners.append(1)
+            s1.merge_populations()
+            s2.merge_populations()
     
     end = time.time()
     elapsed=(end-start_time) #seconds
@@ -143,12 +168,12 @@ if __name__ == "__main__":
     if population_print:
         print(f'Number of competitions {len(winners)}')
         #   print(f'Winner of each competition {winners}')
-        if diversity1 > diversity2:
-            for chromosome,acc,auc,f1 in zip(s1.population[0],s1.population[1],s1.population[2],s1.population[3]):
-                print(f'chromosome: {chromosome}     acc: {acc}     auc: {auc}      f1: {f1}')
-        else:
-            for chromosome,acc,auc,f1 in zip(s2.population[0],s2.population[1],s2.population[2],s2.population[3]):
-                print(f'chromosome: {chromosome}     acc: {acc}     auc: {auc}      f1: {f1}')
+        
+        for chromosome,acc,auc,f1 in zip(s1.population[0],s1.population[1],s1.population[2],s1.population[3]):
+            print(f'chromosome: {chromosome}     acc: {acc}     auc: {auc}      f1: {f1}')
+    
+        for chromosome,acc,auc,f1 in zip(s2.population[0],s2.population[1],s2.population[2],s2.population[3]):
+            print(f'chromosome: {chromosome}     acc: {acc}     auc: {auc}      f1: {f1}')
 
     #   print to csv
     csv_print=False
