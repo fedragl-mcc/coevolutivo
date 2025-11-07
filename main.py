@@ -104,7 +104,7 @@ class Species:
         #   use fast
         d=Dominance()
         self.population=d.FAST(self.new_individuals,self.population,self.population_size)
-        self.new_individuals.clear()
+        [col.clear() for col in self.new_individuals]
         return
 
 def operators_parameters():
@@ -155,7 +155,7 @@ if __name__ == "__main__":
         s2.generation(gen=_,mutation_probability=s2_mutatep,cross_probability=s2_crossp,model=model2)
 
 
-        if (_%5)==0:
+        if (_%10)==0:
             s1.merge_populations()
             s2.merge_populations()
     
