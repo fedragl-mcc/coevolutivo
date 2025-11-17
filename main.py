@@ -123,115 +123,119 @@ def operators_parameters():
     return s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2
 
 if __name__ == "__main__":
-    start_time = time.time()
-    now = datetime.datetime.now()
+    for csv_out in range(8,30):
+        print(f'execution: {csv_out}')
+        start_time = time.time()
+        now = datetime.datetime.now()
 
-    #create initial population, sending path and size
-    path='D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv'
-    size=60
-    population = initial_population(size,path)
+        #create initial population, sending path and size
+        path='D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_coimbra\dataR2.csv'
+        size=60
+        population = initial_population(size,path)
 
-    #determine operators thru a function
-    s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2 = operators_parameters()
-    
-    #   output: print operators
-    print(f'Species 1 operators Cross:{crossover1} Mutation:{s1_mutatep} Model:{model1} Selection: {select1} Crossover probability: {s1_crossp}')
-    print(f'Species 2 operators Cross:{crossover2} Mutation:{s2_mutatep} Model:{model2} Selection: {select2} Crossover probability: {s2_crossp}')
-
-    #   create: instances, <placeholder> is used to send a tuple instead of a list, refer to: https://web.archive.org/web/20200221224620id_/http://effbot.org/zone/default-values.htm
-    s1 = Species(path, ("placeholder",population),selection=select1,crossover=crossover1,population_size=size)
-    s2 = Species(path, ("placeholder",population),selection=select2,crossover=crossover2,population_size=size)
-    
-    #competition variables
-    competition = 0
-    winners=list()
-
-    #coevolution generations
-    for _ in range (1,21):
-        print('generation {}'.format(_))
-
-        #genetic algorithm / generation of children
-        s1.generation(gen=_,mutation_probability=s1_mutatep,cross_probability=s1_crossp,model=model1)
-        s2.generation(gen=_,mutation_probability=s2_mutatep,cross_probability=s2_crossp,model=model2)
-
-
-        if (_%10)==0:
-            s1.merge_populations()
-            s2.merge_populations()
-    
-    end = time.time()
-    elapsed=(end-start_time) #seconds
-    print(elapsed)
-
-    #   print to see the population:
-    population_print = False
-    if population_print:
-        print(f'Number of competitions {len(winners)}')
-        #   print(f'Winner of each competition {winners}')
+        #determine operators thru a function
+        s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2 = operators_parameters()
         
-        for chromosome,acc,auc,f1 in zip(s1.population[0],s1.population[1],s1.population[2],s1.population[3]):
-            print(f'chromosome: {chromosome}     acc: {acc}     auc: {auc}      f1: {f1}')
-    
-        for chromosome,acc,auc,f1 in zip(s2.population[0],s2.population[1],s2.population[2],s2.population[3]):
-            print(f'chromosome: {chromosome}     acc: {acc}     auc: {auc}      f1: {f1}')
+        #   output: print operators
+        print(f'Species 1 operators Cross:{crossover1} Mutation:{s1_mutatep} Model:{model1} Selection: {select1} Crossover probability: {s1_crossp}')
+        print(f'Species 2 operators Cross:{crossover2} Mutation:{s2_mutatep} Model:{model2} Selection: {select2} Crossover probability: {s2_crossp}')
 
-    #   print to csv
-    csv_print=False
-    if csv_print:
-        #   Open the CSV file in append mode
-        wbcd = open('D:\Fedra\iCloudDrive\Mcc\Tesis\Experimentacion\ouputs\wbcd_no_sharedpopulation.csv', 'a', newline='')
-        #   Create a CSV writer
-        writer = csv.writer(wbcd)
+        #   create: instances, <placeholder> is used to send a tuple instead of a list, refer to: https://web.archive.org/web/20200221224620id_/http://effbot.org/zone/default-values.htm
+        s1 = Species(path, ("placeholder",population),selection=select1,crossover=crossover1,population_size=size)
+        s2 = Species(path, ("placeholder",population),selection=select2,crossover=crossover2,population_size=size)
         
-        #   set time
-        version = now.strftime("%Y-%m-%d %H:%M:%S")
-        writer.writerow([version])
-        writer.writerow(["Populations arent being shared, only does the comparison"])
-        print(version)
+        #competition variables
+        competition = 0
+        winners=list()
 
+        #coevolution generations
+        for _ in range (1,201):
+            #print('generation {}'.format(_))
+
+            #genetic algorithm / generation of children
+            s1.generation(gen=_,mutation_probability=s1_mutatep,cross_probability=s1_crossp,model=model1)
+            s2.generation(gen=_,mutation_probability=s2_mutatep,cross_probability=s2_crossp,model=model2)
+
+
+            if (_%5)==0:
+                print('generation {}'.format(_))
+                s1.merge_populations()
+                s2.merge_populations()
         
-        #   Headings
-        heading = ['chromosome','acc','auc','f1','time']
-        writer.writerow(['usando acc'])
-        writer.writerow(heading)
+        end = time.time()
+        elapsed=(end-start_time) #seconds
+        print(elapsed)
 
-        population1=s1.population
-        population2=s2.population
-
-        #write the initial population
-        writer.writerow(['initial population'])
-        for _ in range(60):
-            chromosome = population[0][_]
-            acc = population[1][_]
-            auc = population[2][_]
-            f1 = population[3][_]
-            writer.writerow([chromosome,acc,auc,f1])
-
-        #out csv of population
-        writer.writerow(['species 1'])
-        writer.writerow([f'Species 1 operators Cross:{crossover1} Mutation:{s1_mutatep} Model:{model1} Selection: {select1} Crossover probability: {s1_crossp}'])
-        writer.writerow([s1_crossp,s1_mutatep,model1,select1,crossover1])
-        for _ in range(60):
-            chromosome = population1[0][_]
-            acc = population1[1][_]
-            auc = population1[2][_]
-            f1 = population1[3][_]
-            writer.writerow([chromosome,acc,auc,f1])
-
-        #out csv of population
-        writer.writerow(['species 2'])
-        writer.writerow([f'Species 2 operators Cross:{crossover2} Mutation:{s2_mutatep} Model:{model2} Selection: {select2} Crossover probability: {s2_crossp}'])
-        writer.writerow([s2_crossp,s2_mutatep,model2,select2,crossover2])
-        for _ in range(60):
-            chromosome = population2[0][_]
-            acc = population2[1][_]
-            auc = population2[2][_]
-            f1 = population2[3][_]
-            writer.writerow([chromosome,acc,auc,f1])
+        #   print to see the population:
+        population_print = False
+        if population_print:
+            print(f'Number of competitions {len(winners)}')
+            #   print(f'Winner of each competition {winners}')
+            
+            for chromosome,acc,auc,f1 in zip(s1.population[0],s1.population[1],s1.population[2],s1.population[3]):
+                print(f'chromosome: {chromosome}     acc: {acc}     auc: {auc}      f1: {f1}')
         
-        now = datetime.datetime.now()  
-        version = now.strftime("%Y-%m-%d %H:%M:%S")
-        writer.writerow([version])
-        print(version)
-        wbcd.close()
+            for chromosome,acc,auc,f1 in zip(s2.population[0],s2.population[1],s2.population[2],s2.population[3]):
+                print(f'chromosome: {chromosome}     acc: {acc}     auc: {auc}      f1: {f1}')
+
+        #   print to csv
+        csv_print=True
+        if csv_print:
+            route = f'D:\Fedra\iCloudDrive\Mcc\Tesis\\04_Semestre\Experimentacion\coimbra\coimbra_exp1_5_gen_{csv_out}.csv'
+            #   Open the CSV file in append mode
+            wbcd = open(route, 'a', newline='')
+            #   Create a CSV writer
+            writer = csv.writer(wbcd)
+            
+            #   set time
+            version = now.strftime("%Y-%m-%d %H:%M:%S")
+            writer.writerow([version])
+            writer.writerow(["Populations arent being shared, gen: 200, pop_size=60"])
+            print(version)
+
+            
+            #   Headings
+            heading = ['chromosome','acc','auc','f1','time']
+            writer.writerow(['usando acc'])
+            writer.writerow(heading)
+
+            population1=s1.population
+            population2=s2.population
+
+            #write the initial population
+            writer.writerow(['initial population'])
+            for _ in range(60):
+                chromosome = population[0][_]
+                acc = population[1][_]
+                auc = population[2][_]
+                f1 = population[3][_]
+                writer.writerow([chromosome,acc,auc,f1])
+
+            #out csv of population
+            writer.writerow(['species 1'])
+            writer.writerow([f'Species 1 operators Cross:{crossover1} Mutation:{s1_mutatep} Model:{model1} Selection: {select1} Crossover probability: {s1_crossp}'])
+            writer.writerow([s1_crossp,s1_mutatep,model1,select1,crossover1])
+            for _ in range(60):
+                chromosome = population1[0][_]
+                acc = population1[1][_]
+                auc = population1[2][_]
+                f1 = population1[3][_]
+                writer.writerow([chromosome,acc,auc,f1])
+
+            #out csv of population
+            writer.writerow(['species 2'])
+            writer.writerow([f'Species 2 operators Cross:{crossover2} Mutation:{s2_mutatep} Model:{model2} Selection: {select2} Crossover probability: {s2_crossp}'])
+            writer.writerow([s2_crossp,s2_mutatep,model2,select2,crossover2])
+            for _ in range(60):
+                chromosome = population2[0][_]
+                acc = population2[1][_]
+                auc = population2[2][_]
+                f1 = population2[3][_]
+                writer.writerow([chromosome,acc,auc,f1])
+            
+            now = datetime.datetime.now()  
+            version = now.strftime("%Y-%m-%d %H:%M:%S")
+            writer.writerow([version])
+            print(version)
+            wbcd.close()
 

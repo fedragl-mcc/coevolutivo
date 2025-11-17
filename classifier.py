@@ -78,8 +78,8 @@ class Classifier:
     def Classif_evaluation(self):
         #   WBDC: answer to the "ValueError: Classification metrics can't handle a mix of unknown and binary targets"
         #   had to use astype bc self.y_test is dtype=object even after .to_numpy(), also had to save it to themselves again otherwise change does not happen
-        self.y_pred = self.y_pred.astype(int)##comment: wbdc     uncomment:bc_uci
-        # self.y_test = self.y_test.astype(int).to_numpy() #uncomment: wbdc     comment:bc_uci
+        self.y_pred = self.y_pred.astype(int)##comment: wbdc   uncomment:bc_uci, [coimbra: AttributeError: 'str' object has no attribute 'astype']  
+        # self.y_test = self.y_test.astype(int).to_numpy() #uncomment: wbdc     comment:bc_uci, coimbra
         #_______________  
 
         self.accuracy = accuracy_score(self.y_test, self.y_pred)
@@ -88,8 +88,8 @@ class Classifier:
         
 if __name__ == "__main__":
     print("Machinelearning starting...")
-    test = Classifier('D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv')
-    chromosome=[1,0,1,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    test = Classifier('D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_coimbra\dataR2.csv')
+    chromosome=[1,0,1,0,0,0,0,1,1]
     test.model="SVM"
     test.Training(chromosome)
     print(test.y_train)

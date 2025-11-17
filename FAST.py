@@ -49,8 +49,8 @@ class Dominance:
                         break
             if nonDominated == True and len(Dominates) > 0:
                 front.append(i) #   adds the index
-            elif nonDominated == False:
-                print(f'{i} dominated by {ii}')
+            # elif nonDominated == False:
+            #     print(f'{i} dominated by {ii}')
         return front
 
     def FAST(self,children_bag,parent_population,population_size):
@@ -73,7 +73,7 @@ class Dominance:
             # call frontier normally (it expects list of lists)
             front = self.frontier(population, metrics)
             if len(front) == 0:
-                print("everyone is on the pareto front???")
+                print("everyone is on the pareto front")
                 break
             else:
                 #   store elements 

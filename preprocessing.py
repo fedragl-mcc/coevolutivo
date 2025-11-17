@@ -2,9 +2,10 @@
     module where preprocessing is done
     none of the functions return anything
     _______
-    wbdc: D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv
-    bcuci: D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\\bcuci_yugos\\breast-cancer.csv
-    coimbria: D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\\breast_cancer_coimbra\dataR2.csv
+    wbdc: D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv
+    bcuci: D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\bcuci_yugos\\breast-cancer.csv
+    coimbria: D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_coimbra\dataR2.csv [1,0,1,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    seer: D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\seer_breast\SEER_excelEDIT.csv
 
     _______________________
     edit 28/09/2025: previous versions of this only work for wisconsin breast cancer 
@@ -33,24 +34,24 @@ class Preprocessing:
     #   read CSV and turn into a dataframe
     def ReadCSV(self):
         #wisconsin
-        self.df = pd.read_csv(self.path, header=None) #0: bc_coimbra,seer   |   None: wbdc, bc_uci
+        self.df = pd.read_csv(self.path, header=0) #0: bc_coimbra,seer   |   None: wbdc, bc_uci
 
     #   target & feature split 
-    # (WBCD)
-    def TF_Split(self):
-        #   WBC
-        self.df.iloc[:,1] = self.df.iloc[:,1].map({'M': 1, 'B': 0}) #   Convertir la columna 'Diagnóstico' a valores numéricos
-        self.y=self.df.iloc[:,1].copy() # set target column into its own df
-        
-        self.X=self.df.drop(self.df.columns[[0,1]], axis=1).copy() #dropping id[0] and target[1]
-        self.features = len(self.X.columns)
-
-    # # (bc coimbra)
+    # # (WBCD)
     # def TF_Split(self):
-    #     self.y=self.df.iloc[:,-1].copy() # set target column into its own df
+    #     #   WBC
+    #     self.df.iloc[:,1] = self.df.iloc[:,1].map({'M': 1, 'B': 0}) #   Convertir la columna 'Diagnóstico' a valores numéricos
+    #     self.y=self.df.iloc[:,1].copy() # set target column into its own df
         
-    #     self.X=self.df.drop(self.df.columns[[-1]], axis=1).copy() #dropping id[0] and target[1]
+    #     self.X=self.df.drop(self.df.columns[[0,1]], axis=1).copy() #dropping id[0] and target[1]
     #     self.features = len(self.X.columns)
+
+    # (bc coimbra)
+    def TF_Split(self):
+        self.y=self.df.iloc[:,-1].copy() # set target column into its own df
+        
+        self.X=self.df.drop(self.df.columns[[-1]], axis=1).copy() #dropping id[0] and target[1]
+        self.features = len(self.X.columns)
     
     # (SEER)
     # def TF_Split(self):
@@ -150,7 +151,7 @@ class Preprocessing:
 
 if __name__ == "__main__":
     print("Preprocessing starting...")
-    test = Preprocessing(path='D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\seer_breast\SEER_excelEDIT.csv') #double bacl slash bc of the letter b? \\b
+    test = Preprocessing(path='D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_coimbra\dataR2.csv') #double bacl slash bc of the letter b? \\b
     # test.chromosome=[1,0,1,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1]
     test.ReadCSV()
     test.TF_Split()
