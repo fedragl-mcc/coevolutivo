@@ -54,13 +54,17 @@ class Species:
         #   evaluate the children population
         for child in children_bag:
         #   evaluate each children
-            acc,auc,f1=self.species.fitness(child)
-            #   append metrics to their lists
-            self.new_individuals[0].append(child)
-            self.new_individuals[1].append(acc)
-            self.new_individuals[2].append(auc)
-            self.new_individuals[3].append(f1)
-    
+            if any(child):
+                acc,auc,f1=self.species.fitness(child)
+                #   append metrics to their lists
+                self.new_individuals[0].append(child)
+                self.new_individuals[1].append(acc)
+                self.new_individuals[2].append(auc)
+                self.new_individuals[3].append(f1)
+            else:
+                print(child)
+                pass
+        
     def compare_populations(self,children_bag):
         averages = [list() for i in range (len(self.population)-1)]
         averages = [sum(i)/len(i) for i in (self.population[1:])]
@@ -123,7 +127,7 @@ def operators_parameters():
     return s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2
 
 if __name__ == "__main__":
-    for csv_out in range(8,30):
+    for csv_out in range(18,30):
         print(f'execution: {csv_out}')
         start_time = time.time()
         now = datetime.datetime.now()

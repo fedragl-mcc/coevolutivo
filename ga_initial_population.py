@@ -18,6 +18,7 @@ def chromosome_creation(c_size):
 
 def initial_population(population_size, path):
     individuals=[]
+    individual=[]
     accs=[]
     aucs=[]
     f1s=[]
@@ -27,7 +28,8 @@ def initial_population(population_size, path):
     ind=0
 
     while len(individuals) < population_size:
-        individual = chromosome_creation(c_size)
+        while any(individual) == False: #   there must be at least one feature present (bc during coimbra dataset i had a lot of trouble)
+            individual = chromosome_creation(c_size)
 
         #call methods from class classifier for fitness evaluation 
         model = random.choice(['SVM','RF','KNN'])   #randomly select a ml model
@@ -38,12 +40,13 @@ def initial_population(population_size, path):
         # evaluate chromosoma
         fitness = dataset.accuracy
         if fitness > .5:
-            individuals.append(individual)	#	agregar cromosoma a la poblacion
+            individuals.append(individual.copy())	#	agregar cromosoma a la poblacion
             accs.append(dataset.accuracy)
             aucs.append(float(dataset.auc))
             f1s.append(dataset.f1_score)
         else:
             ind=ind-1
+        individual.clear()
 
     population = individuals,accs,aucs,f1s
 

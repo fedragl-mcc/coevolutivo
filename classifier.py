@@ -78,7 +78,11 @@ class Classifier:
     def Classif_evaluation(self):
         #   WBDC: answer to the "ValueError: Classification metrics can't handle a mix of unknown and binary targets"
         #   had to use astype bc self.y_test is dtype=object even after .to_numpy(), also had to save it to themselves again otherwise change does not happen
-        self.y_pred = self.y_pred.astype(int)##comment: wbdc   uncomment:bc_uci, [coimbra: AttributeError: 'str' object has no attribute 'astype']  
+        try:
+            self.y_pred = self.y_pred.astype(int)##comment: wbdc   uncomment:bc_uci, [coimbra: AttributeError: 'str' object has no attribute 'astype']  
+        except AttributeError:
+            print(self.y_pred)
+
         # self.y_test = self.y_test.astype(int).to_numpy() #uncomment: wbdc     comment:bc_uci, coimbra
         #_______________  
 
