@@ -97,19 +97,29 @@ class Species:
         #   evaluate the children an store their fitness
         children_bag=self.evaluate_children(children_bag)
 
-    def repopulate(self, new_individual):
-        self.species.update_population(new_individual)
-
-    def topsis(self,weights=None):
-        topsis_rank = topsis_ranking(self.species.population,weights)
-        return topsis_rank
+    def repopulate(self, shared_pop):
+        for new_individual in shared_pop[0]:
+            self.species.update_population(new_individual)
     
-    def merge_populations(self):
+    def merge_populations(self,type="fast",weights=None):    #merging children and parents through either dominance or metric
         #   use fast
-        d=Dominance()
-        self.population=d.FAST(self.new_individuals,self.population,self.population_size)
+        if type == "fast":
+            d=Dominance()
+            self.population=d.FAST(self.new_individuals,self.population,self.population_size)
+        if type == "topsis":
+            self.population=topsis_ranking(weights)
         [col.clear() for col in self.new_individuals]
         return
+    
+    def topsis(self,weights=None):
+        metrics = len(self.new_individuals) # number of elements in the list
+        joined_population = [list() for i in range(metrics)]
+        #   unify population
+        for i in range(metrics):
+            joined_population[i] = self.population[i] + self.new_individuals[i]
+        topsis_rank = topsis_ranking(population=joined_population,weights=weights) #assigning the biggest weight to F1
+        
+        return topsis_rank
 
 def operators_parameters():
     #operators parameters
@@ -127,15 +137,16 @@ def operators_parameters():
     return s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2
 
 if __name__ == "__main__":
-    for csv_out in range(18,30):
+    for csv_out in range(0,1):
         print(f'execution: {csv_out}')
         start_time = time.time()
         now = datetime.datetime.now()
 
         #create initial population, sending path and size
-        path='D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_coimbra\dataR2.csv'
-        size=60
+        path='D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_uci\\breast_cancer.csv'
+        size=30
         population = initial_population(size,path)
+        generations=301
 
         #determine operators thru a function
         s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2 = operators_parameters()
@@ -153,7 +164,7 @@ if __name__ == "__main__":
         winners=list()
 
         #coevolution generations
-        for _ in range (1,201):
+        for _ in range (1,generations):
             #print('generation {}'.format(_))
 
             #genetic algorithm / generation of children
@@ -161,10 +172,22 @@ if __name__ == "__main__":
             s2.generation(gen=_,mutation_probability=s2_mutatep,cross_probability=s2_crossp,model=model2)
 
 
-            if (_%5)==0:
+            if (_%5)==0 & _!=generations:
                 print('generation {}'.format(_))
-                s1.merge_populations()
-                s2.merge_populations()
+                s1.merge_populations("topsis",[2,2,3])
+                s2.merge_populations("topsis",[2,2,3])
+
+            if(_%30)==0 & _!=generations:
+                d=Dominance()
+                p1=s1.population
+                p2=s2.population
+                merged_pop=d.FAST(p1,p2,60)
+                insert= [list() for i in range(len(population))]
+                for i,col in enumerate(insert):
+                    col = merged_pop[i][:size%10]
+                s1.repopulate(insert)
+                s2.repopulate(insert)
+                
         
         end = time.time()
         elapsed=(end-start_time) #seconds
@@ -185,7 +208,7 @@ if __name__ == "__main__":
         #   print to csv
         csv_print=True
         if csv_print:
-            route = f'D:\Fedra\iCloudDrive\Mcc\Tesis\\04_Semestre\Experimentacion\coimbra\coimbra_exp1_5_gen_{csv_out}.csv'
+            route = f'D:\Fedra\iCloudDrive\Mcc\Tesis\\04_Semestre\Experimentacion\\bc_yugos\test{csv_out}.csv'
             #   Open the CSV file in append mode
             wbcd = open(route, 'a', newline='')
             #   Create a CSV writer
@@ -194,7 +217,7 @@ if __name__ == "__main__":
             #   set time
             version = now.strftime("%Y-%m-%d %H:%M:%S")
             writer.writerow([version])
-            writer.writerow(["Populations arent being shared, gen: 200, pop_size=60"])
+            writer.writerow(["Populations arent being shared, gen: 300, pop_size=30"])
             print(version)
 
             
@@ -208,7 +231,7 @@ if __name__ == "__main__":
 
             #write the initial population
             writer.writerow(['initial population'])
-            for _ in range(60):
+            for _ in range(size):
                 chromosome = population[0][_]
                 acc = population[1][_]
                 auc = population[2][_]
@@ -219,7 +242,7 @@ if __name__ == "__main__":
             writer.writerow(['species 1'])
             writer.writerow([f'Species 1 operators Cross:{crossover1} Mutation:{s1_mutatep} Model:{model1} Selection: {select1} Crossover probability: {s1_crossp}'])
             writer.writerow([s1_crossp,s1_mutatep,model1,select1,crossover1])
-            for _ in range(60):
+            for _ in range(size):
                 chromosome = population1[0][_]
                 acc = population1[1][_]
                 auc = population1[2][_]
@@ -230,7 +253,7 @@ if __name__ == "__main__":
             writer.writerow(['species 2'])
             writer.writerow([f'Species 2 operators Cross:{crossover2} Mutation:{s2_mutatep} Model:{model2} Selection: {select2} Crossover probability: {s2_crossp}'])
             writer.writerow([s2_crossp,s2_mutatep,model2,select2,crossover2])
-            for _ in range(60):
+            for _ in range(size):
                 chromosome = population2[0][_]
                 acc = population2[1][_]
                 auc = population2[2][_]

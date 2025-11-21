@@ -1,6 +1,5 @@
 import numpy as np
 def topsis(population,weights=None,shared=False): 
-    chromosomes = population[0]
     if shared:
         criteria = np.array(population[1:-1])
     else:

@@ -92,7 +92,7 @@ class Classifier:
         
 if __name__ == "__main__":
     print("Machinelearning starting...")
-    test = Classifier('D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_coimbra\dataR2.csv')
+    test = Classifier('D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_uci\\breast_cancer.csv')
     chromosome=[1,0,1,0,0,0,0,1,1]
     test.model="SVM"
     test.Training(chromosome)

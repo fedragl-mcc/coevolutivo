@@ -34,7 +34,7 @@ class Preprocessing:
     #   read CSV and turn into a dataframe
     def ReadCSV(self):
         #wisconsin
-        self.df = pd.read_csv(self.path, header=0) #0: bc_coimbra,seer   |   None: wbdc, bc_uci
+        self.df = pd.read_csv(self.path, header=None) #0: bc_coimbra,seer   |   None: wbdc, bc_uci
 
     #   target & feature split 
     # # (WBCD)
@@ -46,12 +46,12 @@ class Preprocessing:
     #     self.X=self.df.drop(self.df.columns[[0,1]], axis=1).copy() #dropping id[0] and target[1]
     #     self.features = len(self.X.columns)
 
-    # (bc coimbra)
-    def TF_Split(self):
-        self.y=self.df.iloc[:,-1].copy() # set target column into its own df
+    # # (bc coimbra)
+    # def TF_Split(self):
+    #     self.y=self.df.iloc[:,-1].copy() # set target column into its own df
         
-        self.X=self.df.drop(self.df.columns[[-1]], axis=1).copy() #dropping id[0] and target[1]
-        self.features = len(self.X.columns)
+    #     self.X=self.df.drop(self.df.columns[[-1]], axis=1).copy() #dropping id[0] and target[1]
+    #     self.features = len(self.X.columns)
     
     # (SEER)
     # def TF_Split(self):
@@ -61,22 +61,22 @@ class Preprocessing:
     #     self.features = len(self.X.columns)
     
     #bcuci_yugos
-    # def TF_Split(self):
-    #     #mid point for range characteristics
-    #     for age,tumor,node,i in zip(self.df[1],self.df[3],self.df[4],range(len(self.df[3]))):
-    #         start, end = map(int, age.split('-'))
-    #         self.df.iloc[i,1] = (start + end) / 2
-    #         start, end = map(int, tumor.split('-'))
-    #         self.df.iloc[i,3] = (start + end) / 2
-    #         start, end = map(int, node.split('-'))
-    #         self.df.iloc[i,4] = (start + end) / 2
+    def TF_Split(self):
+        #mid point for range characteristics
+        for age,tumor,node,i in zip(self.df[1],self.df[3],self.df[4],range(len(self.df[3]))):
+            start, end = map(int, age.split('-'))
+            self.df.iloc[i,1] = (start + end) / 2
+            start, end = map(int, tumor.split('-'))
+            self.df.iloc[i,3] = (start + end) / 2
+            start, end = map(int, node.split('-'))
+            self.df.iloc[i,4] = (start + end) / 2
         
-    #     # set target column into its own df, and apply label encoder
-    #     self.y=self.df.iloc[:,0].copy() 
+        # set target column into its own df, and apply label encoder
+        self.y=self.df.iloc[:,0].copy() 
         
-    #     #dropping  target at [0] 
-    #     self.X=self.df.drop(self.df.columns[0], axis=1).copy() 
-    #     self.features = len(self.X.columns)
+        #dropping  target at [0] 
+        self.X=self.df.drop(self.df.columns[0], axis=1).copy() 
+        self.features = len(self.X.columns)
 
     #   chromosome feature selection    
     def Chromosome_FS(self):
@@ -147,11 +147,11 @@ class Preprocessing:
         self.TF_Split()
         self.Missing_values()
         self.Standardization()
-        self.Outlier_detection() #    uncomment: wbdc,bc_coimbria,seer  |    comment for bc_uci
+        # self.Outlier_detection() #    uncomment: wbdc,bc_coimbria,seer  |    comment for bc_uci
 
 if __name__ == "__main__":
     print("Preprocessing starting...")
-    test = Preprocessing(path='D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_coimbra\dataR2.csv') #double bacl slash bc of the letter b? \\b
+    test = Preprocessing(path='D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_uci\\breast_cancer.csv') #double bacl slash bc of the letter b? \\b
     # test.chromosome=[1,0,1,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1]
     test.ReadCSV()
     test.TF_Split()
