@@ -1,0 +1,45 @@
+# s1C   s1M   M1   S1          C1
+0.2   0.8   RF   uniform      uniform
+0.2   0.8   KNN  tournament   two_point
+0.2   0.8   SVM  roulette     two_point
+
+0.2   0.6   RF   tournament   uniform
+0.2   0.6   KNN  roulette     two_point
+0.2   0.6   SVM  uniform      two_point
+
+0.2   0.2   RF   roulette     uniform
+0.2   0.2   KNN  uniform      two_point
+0.2   0.2   SVM  tournament   uniform
+
+0.4   0.8   RF   roulette     two_point
+0.4   0.8   KNN  uniform      uniform
+0.4   0.8   SVM  tournament   uniform
+
+0.4   0.6   RF   uniform      two_point
+0.4   0.6   KNN  tournament   uniform
+0.4   0.6   SVM  roulette     two_point
+
+0.4   0.2   RF   tournament   two_point
+0.4   0.2   KNN  roulette     uniform
+0.4   0.2   SVM  uniform      two_point
+
+s2_crossp,s2_mutatep,model2,select2,crossover2
+0.3,0.7,RF,uniform,uniform
+0.3,0.7,KNN,tournament,two_point
+0.3,0.7,SVM,roulette,two_point
+0.3,0.4,RF,tournament,uniform
+0.3,0.4,KNN,roulette,two_point
+0.3,0.4,SVM,uniform,two_point
+0.3,0.1,RF,roulette,uniform
+0.3,0.1,KNN,uniform,two_point
+0.3,0.1,SVM,tournament,uniform
+0.6,0.7,RF,roulette,two_point
+0.6,0.7,KNN,uniform,uniform
+0.6,0.7,SVM,tournament,uniform
+0.6,0.4,RF,uniform,two_point
+0.6,0.4,KNN,tournament,uniform
+0.6,0.4,SVM,roulette,two_point
+0.6,0.1,RF,tournament,two_point
+0.6,0.1,KNN,roulette,uniform
+0.6,0.1,SVM,uniform,two_point
+

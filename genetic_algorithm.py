@@ -6,8 +6,10 @@ from ga_initial_population import initial_population
 from selection_ga import selection_s
 from crossover_ga import selection_c
 from classifier import Classifier
+from topsis import topsis as topsis_ranking
 
 import time
+import copy
 
 class genetic_algorithm:
     def __init__(self,path,population,model):
@@ -32,18 +34,18 @@ class genetic_algorithm:
         self.f1_score=None
         self.accuracy=None
 
+#   selection sends: type, population, metric   |  return index / list of indexes
     def selection(self):
-    #   selection sends: type, population   |  return index
-        parent1, parent2 = selection_s(self.s_type, self.population,self.population_size)
-        return parent1,parent2
+        parents_bag = selection_s(self.s_type, self.population,self.population_size)
+        return parents_bag
 
+#   crossover sends type: list, parent1: chromosome vector, parent2: chromosome vector, cross probability: float  |    return offspring1/2: chromosome vector
     def crossover(self, parent1, parent2):
-    #   crossover sends type: list, parent1: chromosome vector, parent2: chromosome vector, cross probability: float  |    return offspring1/2: chromosome vector
         offspring1, offspring2 = selection_c(self.c_type,parent1,parent2,self.cross_probability)
         return offspring1, offspring2
 
+#   mutation receives:chromosome | return (mutated)chromosome
     def mutate(self,chromosome):
-    #   mutation receives:chromosome | return (mutated)chromosome
         mutation_point = random.randint(0, len(chromosome)-1)
         if chromosome[mutation_point] == 0:
             chromosome[mutation_point] = 1
@@ -52,8 +54,8 @@ class genetic_algorithm:
             chromosome[mutation_point] = 0
         return chromosome
 
+#   fitness evaluation receives: chromosome     |   return metrics 
     def fitness(self,chromosome):
-    #   fitness evaluation receives: chromosome |   return metrics 
         self.dataset.model=self.model
         self.dataset.Training(chromosome)
         self.dataset.Classif_evaluation()
@@ -64,18 +66,16 @@ class genetic_algorithm:
 
         return accuracy,float(auc),f1_score
     
-    #   evaluate population using the means only, broach subject using other methods such as nsgaII
+#   evaluate population using the means only: receives nothing, uses self only    |  returns the means of that population
     def evaluate_population(self):
-        #   receives nothing, uses self only
-        #   returns the means of that population
         acc_mean = sum(self.population[1])/self.population_size
         auc_mean = sum(self.population[2])/self.population_size
         f1_mean = sum(self.population[3])/self.population_size
         gen_averages=[acc_mean,auc_mean,f1_mean]
         return gen_averages
 
+#   update population   receives individual = [[chromosome],acc,auc,f1] | returns: none
     def update_population(self,new_individual,index=None):
-    #   update population   receives individual = [[chromosome],acc,auc,f1] | returns: none
         if index!= None:
             index = random.choice(range(self.population_size))
 
@@ -84,7 +84,8 @@ class genetic_algorithm:
             individual.append(new_individual[i])
             i+=1
 
-    def compare(self,child,index1,index2): #recibe el fitness nadamas, regresa el indice del primero k fue mejor
+#   Comparing a children against parents (or other elements): receives: fitness     |   returns: the index of the one which was best
+    def compare(self,child,index1,index2): 
             if child > self.population[1][index1] & child > self.population[1][index2]:
                 return True
             else:
@@ -95,9 +96,9 @@ if __name__ == "__main__":
     print(start_time)
 
     #   set path for dataset
-    path='D:\Fedra\iCloudDrive\Mcc\Tesis\Resources\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv'
-
-    population = initial_population(60,path)
+    path='Instancias/DS_breast+cancer+wisconsin+diagnostic/wdbc.csv'
+    population = initial_population(path)
+    population_size=len(population)
 
     species = genetic_algorithm(path,population,model='RF')
     species.s_type="uniform"
@@ -109,33 +110,53 @@ if __name__ == "__main__":
     species.cross_probability=.8
     mutation_probability=.02
 	#_______________________________________________________________________________________________________
-
+    print(species.population)
     for _ in range(generations):
         print('generation {}'.format(_))
         #   select two chromosomes for crossover
-        parent1, parent2 = species.selection()
+        parents_bag= species.selection()
 
         #   perform crossover to generate two new chromosomes
-        child1, child2 = species.crossover(population[0][parent1],population[0][parent2])
+        children = list()
+        index2 = len(parents_bag)
+        for _ in range(len(parents_bag)//2):
+            index1 = _
+            child1,child2 = species.crossover(population[0][index1],population[0][index2])
+            children.append(child1)
+            children.append(child2)
+            index2 -= 1
+        
+        #   perform (if its the case) mutation new chromosomes
+        children_bag = [list() for metric in range(len(population))]
+        for child in children:
+            if random.uniform(0, 1) < mutation_probability:
+                mchild = species.mutate(child)
+            else:
+                mchild=child
+        #   add child (mutated or not) into the bag
+            children_bag[0].append(mchild)
 
-        #   perform mutation on the two new chromosomes
-        if random.uniform(0, 1) < mutation_probability:
-            child1 = species.mutate(child1)
-        if random.uniform(0, 1) < mutation_probability:
-            child2 = species.mutate(child2)
+        #   get fitness for each children
+        for child in children_bag[0]:
+            acc,auc,f1=species.fitness(child)
+            children_bag[1].append(acc)
+            children_bag[2].append(auc)
+            children_bag[3].append(f1)
 
-        acc,auc,f1=species.fitness(child1)
-        child1= child1,acc,auc,f1
-        acc,auc,f1=species.fitness(child2)
-        child2= child2,acc,auc,f1
-
-        #   compare children to parents, add child1/child2 if its > either of the parents
-        child = species.compare(child1[1],parent1,parent2)
-        if child:
-            species.update_population(child1)
-        child = species.compare(child2[1],parent1,parent2)
-        if child:
-            species.update_population(child2)
+        # get final population of the generation
+        metrics = len(children_bag)
+        joined_population = [list() for i in range(metrics)]
+        new_pop = [list() for i in range(metrics)]
+        #   unify population
+        for i in range(metrics):
+            joined_population[i] = population[i] + children_bag[i]
+        #   rank population
+        # weights=[]
+        ranked_population = topsis_ranking(population=joined_population)
+        #   arrange
+        for i,metric in enumerate(new_pop):
+            metric = ranked_population[i][:population_size-1]
+        species.population = copy.deepcopy(new_pop)
 
     end = time.time()
     elapsed=end-start_time

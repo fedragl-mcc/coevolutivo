@@ -31,7 +31,7 @@ class Species:
     #   generate children, default is 2
     def generate(self,children):
         children_bag=list()
-        for i in range(children//2):
+        for _ in range(children//2):
             #   select two chromosomes for crossover, index: int()
             parent1, parent2 = self.species.selection()
 
@@ -47,6 +47,13 @@ class Species:
             #   add children to the bag
             children_bag.append(child1)
             children_bag.append(child2)
+        
+        # if True:
+        #     parents_bag = self.species.selection()
+        #     pb_size = len(parents_bag)//2
+        #     for parent 
+
+
         return children_bag
     
     #   evaluate children: receives a list of chromosomes only, returns a list 
@@ -139,13 +146,13 @@ def operators_parameters():
     
 #def coevolutivo(s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2,experiment):
 if __name__ == "__main__":
-    for csv_out in range(0,1):
+    for csv_out in range(0,30):
         print(f'execution: {csv_out}')
         start_time = time.time()
         now = datetime.datetime.now()
 
         #create initial population, sending path and size
-        path='Instancias/breast_cancer_coimbra/dataR2.csv'#'D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_coimbra\dataR2.csv'
+        path='D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_coimbra\dataR2.csv'
         population = initial_population(path)
         size = len(population[0])   #población 2n del número de caracteristicas, esto se modifica en ^^
         generations=301
@@ -196,7 +203,7 @@ if __name__ == "__main__":
         print(elapsed)
 
         #   print to see the population:
-        population_print = True
+        population_print = False
         if population_print:
             print(f'Number of competitions {len(winners)}')
             #   print(f'Winner of each competition {winners}')
@@ -208,7 +215,7 @@ if __name__ == "__main__":
                 print(f'chromosome: {chromosome}     acc: {acc}     auc: {auc}      f1: {f1}')
 
         #   print to csv
-        csv_print=False
+        csv_print=True
         if csv_print:
             route = f'D:\Fedra\iCloudDrive\Mcc\Tesis\\04_Semestre\Experimentacion\\coimbra\\cexp5_{csv_out}.csv'
             #   Open the CSV file in append mode

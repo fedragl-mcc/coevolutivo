@@ -34,24 +34,24 @@ class Preprocessing:
     #   read CSV and turn into a dataframe
     def ReadCSV(self):
         #wisconsin
-        self.df = pd.read_csv(self.path, header=0) #0: bc_coimbra,seer   |   None: wbdc, bc_uci
+        self.df = pd.read_csv(self.path, header=None) #0: bc_coimbra,seer   |   None: wbdc, bc_uci
 
     #   target & feature split 
-    # # # (WBCD)
-    # def TF_Split(self):
-    #     #   WBC
-    #     self.df.iloc[:,1] = self.df.iloc[:,1].map({'M': 1, 'B': 0}) #   Convertir la columna 'Diagnóstico' a valores numéricos
-    #     self.y=self.df.iloc[:,1].copy() # set target column into its own df
-        
-    #     self.X=self.df.drop(self.df.columns[[0,1]], axis=1).copy() #dropping id[0] and target[1]
-    #     self.features = len(self.X.columns)
-
-    # # # # (bc coimbra)
+    # # (WBCD)
     def TF_Split(self):
-        self.y=self.df.iloc[:,-1].copy() # set target column into its own df
+        #   WBC
+        self.df.iloc[:,1] = self.df.iloc[:,1].map({'M': 1, 'B': 0}) #   Convertir la columna 'Diagnóstico' a valores numéricos
+        self.y=self.df.iloc[:,1].copy() # set target column into its own df
         
-        self.X=self.df.drop(self.df.columns[[-1]], axis=1).copy() #dropping id[0] and target[1]
+        self.X=self.df.drop(self.df.columns[[0,1]], axis=1).copy() #dropping id[0] and target[1]
         self.features = len(self.X.columns)
+
+    # # # # # (bc coimbra)
+    # def TF_Split(self):
+    #     self.y=self.df.iloc[:,-1].copy() # set target column into its own df
+        
+    #     self.X=self.df.drop(self.df.columns[[-1]], axis=1).copy() #dropping id[0] and target[1]
+    #     self.features = len(self.X.columns)
     
     # (SEER)
     # def TF_Split(self):
@@ -111,35 +111,35 @@ class Preprocessing:
 
         # Filtrar los datos para eliminar los outliers
         self.X = self.X[~(lower_outliers | upper_outliers).any(axis=1)]
-        #self.y = self.y.loc[self.X.index] #Leave indexes needed and drop the rest
-        self.y = self.y[self.X.index] #for BC_coimbria
+        self.y = self.y.loc[self.X.index] #Leave indexes needed and drop the rest
+        # self.y = self.y[self.X.index] #for BC_coimbria
         #__________________________
 
     #   standarization
-    # #  wbdc
-    # def Standardization(self):
-    #     #   Seleccionar columnas categoricas
-    #     num_cols = self.X.select_dtypes(include=['number']).columns  # Solo numéricos
-
-    #     #   label encoder
-    #     le = LabelEncoder()
-    #     for col in self.X.select_dtypes(exclude=['number']).columns:
-    #         self.X[col] = le.fit_transform(self.X[col])
-
-    #     #   standard scalation
-    #     escalador = StandardScaler()
-    #     self.X[num_cols] = escalador.fit_transform(self.X[num_cols])
-        
-    #   bc_uci 
+    #  wbdc
     def Standardization(self):
-        #   Seleccionar columnas 
-        obj_cols = self.X.columns
+        #   Seleccionar columnas categoricas
+        num_cols = self.X.select_dtypes(include=['number']).columns  # Solo numéricos
 
         #   label encoder
         le = LabelEncoder()
-        for col in obj_cols:
+        for col in self.X.select_dtypes(exclude=['number']).columns:
             self.X[col] = le.fit_transform(self.X[col])
-        self.y = le.fit_transform(self.y)
+
+        #   standard scalation
+        escalador = StandardScaler()
+        self.X[num_cols] = escalador.fit_transform(self.X[num_cols])
+        
+    #   bc_uci 
+    # def Standardization(self):
+    #     #   Seleccionar columnas 
+    #     obj_cols = self.X.columns
+
+    #     #   label encoder
+    #     le = LabelEncoder()
+    #     for col in obj_cols:
+    #         self.X[col] = le.fit_transform(self.X[col])
+    #     self.y = le.fit_transform(self.y)
 
     
     def Preprocess(self):

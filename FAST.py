@@ -35,8 +35,8 @@ class Dominance:
         #   outer for
         for i in range(lenght_pop):
             #   define individual = [[chromosome],acc,auc,f1...metrics...]
-            Dominates = list()
             individual = [population[metric][i] for metric in range(1,metrics)]
+            Dominates = list()
             #   inner for
             for ii in range(lenght_pop):
                 if i != ii:

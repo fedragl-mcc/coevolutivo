@@ -1,3 +1,5 @@
+#   receives: the whole population, usually children bag and original population, weights
+#   returns: a population thats been arranged
 import numpy as np
 def topsis(population,weights=None,shared=False): 
     if shared:
@@ -42,6 +44,6 @@ def topsis(population,weights=None,shared=False):
     for row in population:
         ranked_population.append([row[i] for i in ranking])
 
-    # # Optionally, you can append the scores as a new row
+    # # Append the scores as a new row
     # ranked_population.append([scores[i] for i in ranking])
     return ranked_population
