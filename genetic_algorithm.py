@@ -98,7 +98,7 @@ if __name__ == "__main__":
     #   set path for dataset
     path='Instancias/DS_breast+cancer+wisconsin+diagnostic/wdbc.csv'
     population = initial_population(path)
-    population_size=len(population)
+    population_size=len(population[0])
 
     species = genetic_algorithm(path,population,model='RF')
     species.s_type="uniform"
@@ -143,22 +143,27 @@ if __name__ == "__main__":
             children_bag[2].append(auc)
             children_bag[3].append(f1)
 
-        # get final population of the generation using: topsis?fast?NSGAII
+        #   select individuals that will stay in the population: topsis?fast?NSGAII
+        #   variables
         metrics = len(children_bag)
         joined_population = [list() for i in range(metrics)]
+        # weights=[]    #   weights if using topsis
         new_pop = [list() for i in range(metrics)]
+        
         #   unify population
         for i in range(metrics):
             joined_population[i] = population[i] + children_bag[i]
+        
         #   rank population
-        # weights=[]
         ranked_population = topsis_ranking(population=joined_population)
-        #   arrange
+        
+        #   slice to fit population size
         for i,metric in enumerate(new_pop):
-            metric = ranked_population[i][:population_size-1]
+            metric.extend(ranked_population[i][:population_size-1])
+
+        #   stablish the population for the next generation
         species.population = copy.deepcopy(new_pop)
 
     end = time.time()
     elapsed=end-start_time
     print((end - start_time)/60)
-    print(species.population)
