@@ -19,8 +19,8 @@ class genetic_algorithm:
         self.population_size = len(population[0])
 
         #   genetic algorithm operators
-        self.s_type = None #   type of selection
-        self.c_type = None #   type of cross
+        self.s_type = None #   type of selection, selected randomly when GA instance created
+        self.c_type = None #   type of cross, selected randomly when GA instance created
         self.cross_probability = None
         self.mutation_probability = None
 
@@ -44,7 +44,7 @@ class genetic_algorithm:
         offspring1, offspring2 = selection_c(self.c_type,parent1,parent2,self.cross_probability)
         return offspring1, offspring2
 
-#   mutation receives:chromosome | return (mutated)chromosome
+#   mutation: bit-flip | receives:chromosome | return mutated chromosome
     def mutate(self,chromosome):
         mutation_point = random.randint(0, len(chromosome)-1)
         if chromosome[mutation_point] == 0:
@@ -104,28 +104,28 @@ if __name__ == "__main__":
     species.s_type="uniform"
     species.c_type="uniform"
 
-    generations=10
+    generations=5
 
     #Define parameters for each species
     species.cross_probability=.8
     mutation_probability=.02
 	#_______________________________________________________________________________________________________
-    print(species.population)
     for _ in range(generations):
         print('generation {}'.format(_))
-        #   select two chromosomes for crossover
-        parents_bag= species.selection()
 
-        #   perform crossover to generate two new chromosomes
+        #   select parents and place them on a bag for crossover
+        parents_bag = species.selection()
+
+        #   perform crossover to generate two new chromosomes per couple of parents
         children = list()
         index2 = len(parents_bag)
         for _ in range(len(parents_bag)//2):
-            index1 = _
-            child1,child2 = species.crossover(population[0][index1],population[0][index2])
+            index1 = _  #    from the beginning
+            child1,child2 = species.crossover(population[0][index1],population[0][index2])  #   call for crossover
             children.append(child1)
             children.append(child2)
-            index2 -= 1
-        
+            index2 -= 1     #   from the end
+
         #   perform (if its the case) mutation new chromosomes
         children_bag = [list() for metric in range(len(population))]
         for child in children:
@@ -143,7 +143,7 @@ if __name__ == "__main__":
             children_bag[2].append(auc)
             children_bag[3].append(f1)
 
-        # get final population of the generation
+        # get final population of the generation using: topsis?fast?NSGAII
         metrics = len(children_bag)
         joined_population = [list() for i in range(metrics)]
         new_pop = [list() for i in range(metrics)]

@@ -96,7 +96,7 @@ def tournament(population,size):
             parent = opt1 if fitness[opt1] > fitness[opt2] else opt2
             parents_bag.append(parent)
 
-    #probabilistic
+    #   probabilistic [taken from: notas de clase coello]
     if True:
         n_parents = random.randrange(size // 2, size)
         p = random.uniform(0.5, 1.0)
@@ -113,4 +113,4 @@ if __name__ == "__main__":
     poblacion = ['A', 'B', 'C', 'D']
     fitness = [0.2, 0.5, 0.9, 0.4]
     population=[poblacion,fitness]
-    print(roulette(population,4))
+    print(uniform(population,4))
