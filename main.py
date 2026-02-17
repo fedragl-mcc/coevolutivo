@@ -29,44 +29,25 @@ class Species:
         self.species.c_type=crossover
 
     #   generate children
-    # receives:     number of children (deprecated)    | fitMetric default is 1 for acc, tells selection method which metric take into account
+    # receives:     fitMetric default is 1 for acc, tells selection method which metric take into account
     # returns:      children bag list of binary vectors (not evaluated)
-    def generate(self,children,fitMetric=1):
+    def generate(self,fitMetric=1):
         children_bag=list()
-        #   generating n number of children
-        if False:
-            for _ in range(children//2):
-                #   select two chromosomes for crossover, index: int()
-                parent1, parent2 = self.species.selection()
-
-                #   perform crossover to generate two new chromosomes (index [0]: chromosome )
-                child1, child2 = self.species.crossover(self.species.population[0][parent1],self.species.population[0][parent2])
-
-                #   perform mutation on the two new chromosomes
-                if random.uniform(0, 1) < self.species.mutation_probability:
-                    child1 = self.species.mutate(child1)
-                if random.uniform(0, 1) < self.species.mutation_probability:
-                    child2 = self.species.mutate(child2)
-                
-                #   add children to the bag
-                children_bag.append(child1)
-                children_bag.append(child2)
         #   Generating random number of children
-        if True:
-            #   parent selection: genetic_algorithm > selection_ga  | sends 
-            parents_bag = self.species.selection(fitMetric) #fitmetric is used to tell the selection process which metric focus on when using probabilities
-            pb_size = len(parents_bag)//2
-            parent2=len(parents_bag)
-            #   crossover: genetic_algorithm > crossover_ga | sends a pair of parent each iteration
-            for parent1 in range(pb_size):
-                off1,off2 = self.species.crossover(parents_bag[parent1],parents_bag[parent2])
-                children_bag.append(off1)
-                children_bag.append(off2)
-            #   mutation
-            mutation_prob = self.species.mutation_probability
-            for index, child in enumerate(children_bag):
-                if random.uniform(0,1) < mutation_prob:
-                    children_bag[index] = self.species.mutate(child)
+        #   parent selection: genetic_algorithm > selection_ga  | sends 
+        parents_bag = self.species.selection(fitMetric) #fitmetric is used to tell the selection process which metric focus on when using probabilities
+        pb_size = len(parents_bag)//2
+        parent2=len(parents_bag)
+        #   crossover: genetic_algorithm > crossover_ga | sends a pair of parent each iteration
+        for parent1 in range(pb_size):
+            off1,off2 = self.species.crossover(parents_bag[parent1],parents_bag[parent2])
+            children_bag.append(off1)
+            children_bag.append(off2)
+        #   mutation
+        mutation_prob = self.species.mutation_probability
+        for index, child in enumerate(children_bag):
+            if random.uniform(0,1) < mutation_prob:
+                children_bag[index] = self.species.mutate(child)
         return children_bag
     
     #   evaluate children: receives a list of chromosomes only, returns a list 
@@ -90,44 +71,7 @@ class Species:
                 self.new_individuals[3].append(0)
                 pass
     
-    #   DEPRECATED
-    #   compare children againts current population, returns a new_pop made of only children
-    def compare_populations(self,children_bag):
-    #   evaluate children against parents using the mean of the (current)population, it only keeps children that are equal or better than the mean
-        averages = [sum(i)/len(i) for i in (self.population[1:])]
-        new_pop=[list() for i in range (len(self.population))] 
-        #   compare the children against the mean of the population
-        comparison=list()
-        for i in range (len(children_bag[0])):
-            child = [x[i] for x in children_bag[1:]]    #   childs metrics
-            for metric,average in zip(child,averages):  
-                comparison.append(metric > average)
-            #   determine if it is added, metrics should be equal or better in at least half of the population metrics
-            if comparison.count(True) >= round((len(self.population)-1)/2):
-                for fitness in new_pop:
-                    fitness.append(children_bag[i])
-            comparison.clear()
-        return new_pop
 
-    #   DEPRECATED
-    #   just one generation
-    def generation(self,gen,mutation_probability,cross_probability,model,children=2):
-        #   set parameters
-        self.species.model=model
-        self.species.cross_probability=cross_probability
-        self.species.mutation_probability=mutation_probability
-
-        #   generate children: determine the amount of children that are to be created, default is 2
-        children_bag=self.generate(children)
-
-        #   evaluate the children an store their fitness
-        children_bag=self.evaluate_children(children_bag)
-
-    #   DEPRECATED
-    def repopulate(self, shared_pop):
-        for new_individual in shared_pop[0]:
-            self.species.update_population(new_individual)
-    
     #   SELECT POPULATION, receieves: type(fast/topsis), weights (for topsis)
     def merge_populations(self,type="fast",weights=None):
         #   use fast

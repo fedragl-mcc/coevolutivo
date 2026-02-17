@@ -1,4 +1,3 @@
-
 import random
 import numpy as np
 
@@ -75,17 +74,6 @@ class genetic_algorithm:
         f1_mean = sum(self.population[3])/self.population_size
         gen_averages=[acc_mean,auc_mean,f1_mean]
         return gen_averages
-
-#   DEPRECATED
-#   update population (via index available)  receives individual = [[chromosome],acc,auc,f1] | returns: none
-    def update_population(self,new_individual,index=None):
-        if index== None:
-            index = random.choice(range(self.population_size))
-
-        for i, individual in zip(range(self.population_size),self.population):
-            del individual[index]
-            individual.append(new_individual[i])
-            i+=1
 
 #   Comparing a children against parents (or other elements): receives: fitness     |   returns: the index of the one which was best
     def compare(self,child,index1,index2): 
