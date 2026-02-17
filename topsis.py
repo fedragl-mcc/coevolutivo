@@ -1,11 +1,10 @@
 #   receives: the whole population, usually children bag and original population together, weights
 #   returns: a population thats been arranged
 import numpy as np
-def topsis(population,weights=None,shared=False): 
-    if shared:
-        criteria = np.array(population[1:-1])
-    else:
-        criteria = np.array(population[1:])
+def topsis(population,weights=None): 
+
+    #use metrics as criteria
+    criteria = np.array(population[1:])
 
     # transpose: rows = individuals, cols = criteria
     decision_matrix = criteria.T  

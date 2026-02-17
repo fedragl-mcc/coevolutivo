@@ -5,44 +5,49 @@ from topsis import topsis as topsis_ranking
 from FAST import Dominance 
 
 import random
-import time
 import copy
+import time
 #   data handling
 import csv
 import datetime
 
 class Species:
-    def __init__(self, path, placeholder,selection,crossover,population_size):
+    def __init__(self, path, placeholder,selection,crossover,population_size,dominanceT):
         #   set initial population into the species instances
         population = placeholder[1]
         self.population=copy.deepcopy(population)
         self.population_size=population_size
+        self.metrics = len(population)
 
         #   create instance of genetic algorithm
         self.species = ga(path,self.population,model=None)
 
         #   create children bag variable size = 4 ([chromosome, acc, auc, f1])
-        self.new_individuals = [list() for i in range(len(self.population))]
+        self.new_individuals = [list() for i in range(self.metrics)]
 
-        #   set initial selection an crossover
+        #   set initial selection crossover dominance type
         self.species.s_type=selection
         self.species.c_type=crossover
+        self.dominanceT = dominanceT
 
-    #   generate children
-    # receives:     fitMetric default is 1 for acc, tells selection method which metric take into account
-    # returns:      children bag list of binary vectors (not evaluated)
-    def generate(self,fitMetric=1):
+    #   GENERATE CHILDREN
+    def offsprings(self,fitMetric):
+    #   receives:     fitMetric default is 1 for acc, tells selection method which metric consider
+    #   returns:      children bag list of binary vectors (not evaluated)
         children_bag=list()
-        #   Generating random number of children
-        #   parent selection: genetic_algorithm > selection_ga  | sends 
-        parents_bag = self.species.selection(fitMetric) #fitmetric is used to tell the selection process which metric focus on when using probabilities
-        pb_size = len(parents_bag)//2
-        parent2=len(parents_bag)
+        #   parent selection: genetic_algorithm > selection_ga | receives a list of indexes
+        parents_bag = self.species.selection(fitMetric)
         #   crossover: genetic_algorithm > crossover_ga | sends a pair of parent each iteration
-        for parent1 in range(pb_size):
-            off1,off2 = self.species.crossover(parents_bag[parent1],parents_bag[parent2])
+        crossings = (len(parents_bag))//2
+        parents1 = parents_bag[:crossings]
+        parents2 = parents_bag[crossings:]
+        for parent1,parent2 in zip(parents1,reversed(parents2)):
+            p1 = population[0][parent1]
+            p2 = population[0][parent2]
+            off1,off2 = self.species.crossover(p1,p2)
             children_bag.append(off1)
             children_bag.append(off2)
+            parent2-=1
         #   mutation
         mutation_prob = self.species.mutation_probability
         for index, child in enumerate(children_bag):
@@ -50,7 +55,7 @@ class Species:
                 children_bag[index] = self.species.mutate(child)
         return children_bag
     
-    #   evaluate children: receives a list of chromosomes only, returns a list 
+    #   EVALUATE CHILDREN AND ADD TO SELF.NEW_INDIVIDUALS: receives a list of chromosomes only, sets in self new_individuals [list(list())
     def evaluate_children(self,children_bag):
         #   evaluate the children population
         for child in children_bag:
@@ -65,36 +70,51 @@ class Species:
             else:
                 #   if child is empty
                 print("empty child: ",child)
-                self.new_individuals[0].append(0)
+                self.new_individuals[0].append(child)
                 self.new_individuals[1].append(0)
                 self.new_individuals[2].append(0)
                 self.new_individuals[3].append(0)
-                pass
     
-
     #   SELECT POPULATION, receieves: type(fast/topsis), weights (for topsis)
-    def merge_populations(self,type="fast",weights=None):
-        #   use fast
-        if type == "fast":
-            d=Dominance()
-            self.population=d.FAST(self.new_individuals,self.population,self.population_size)
-        if type == "topsis":
-            self.population=self.topsis(weights)
-
-        #after merging population clear new_indiviuals bag
-        [col.clear() for col in self.new_individuals]
-        return
-    
-    def topsis(self,weights=None):
-        metrics = len(self.new_individuals) # number of elements in the list
-        joined_population = [list() for i in range(metrics)]
-        #   unify population
-        for i in range(metrics):
+    def merge_populations(self,weights):
+        #   unify population =======================================================
+        joined_population = [list() for i in range(self.metrics)]
+        for i in range(self.metrics):
             joined_population[i] = self.population[i] + self.new_individuals[i]
-        topsis_rank = topsis_ranking(population=joined_population,weights=weights) #assigning the biggest weight to F1
-        
-        return topsis_rank
+        #   ========================================================================
+        #   use fast ===============================================================
+        if self.dominanceT == "fast":
+            print("New gen: pareto front")
+            d=Dominance()
+            self.population=d.FAST(joined_population,self.population_size)
+        #   ========================================================================
+        #   use topsis =============================================================
+        elif self.dominanceT == "topsis":
+            ranked=topsis_ranking(joined_population,weights)
+            self.population=[rankedM[:self.population_size] for rankedM in (ranked)]
+        #   ========================================================================
+        #   after merging population clear new_indiviuals bag ======================
+        [col.clear() for col in self.new_individuals]
+        # ==========================================================================
 
+        return
+
+    #   A GENERATION: setting instance parameters, creation (selection,crossover,mutation), evaluation of offsprings
+    def generation(self,mutation_probability,cross_probability,model,fitMetric=1,weights=None):
+        #   set parameters
+        self.species.model=model
+        self.species.cross_probability=cross_probability
+        self.species.mutation_probability=mutation_probability
+
+        #   generate offsprings
+        children_bag=self.offsprings(fitMetric)
+
+        #   evaluate the children an store their fitness
+        self.evaluate_children(children_bag)
+
+        #   chop population to fit size (final population)
+        self.merge_populations(weights)
+    
 def operators_parameters():
     #operators parameters
     #   species 1
@@ -110,13 +130,16 @@ def operators_parameters():
     model2 =  random.choice(["RF","KNN","SVM"])
     select2 = random.choice(["uniform","tournament","roulette"])
     crossover2 = random.choice(["uniform","two_point"])
+    weights=[[3,3,9],[3,9,3],[9,3,3]]
+    weights = random.choice(weights)
 
-    return s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2
+    return s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2,weights
 
 if __name__ == "__main__":
     #   VARIABLES
-    generations=300
-    path = 'D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_coimbra\dataR2.csv'
+    generations=5
+    # path = 'D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_coimbra\dataR2.csv'
+    path = 'Instancias/DS_breast+cancer+wisconsin+diagnostic/wdbc.csv'
 
     #   INITIAL POPULATION:         create initial population, send dataset path, return population
     population = initial_population(path)
@@ -124,16 +147,16 @@ if __name__ == "__main__":
     
 
     #   RANDOMLY SET OPERATORS:     for each species (use a function to prevent clutter)
-    s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2 = operators_parameters()
+    s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2, weights = operators_parameters()
     
     #   output: print operators
-    print(f'Species 1 operators Cross:{crossover1} Mutation:{s1_mutatep} Model:{model1} Selection: {select1} Crossover probability: {s1_crossp}')
-    print(f'Species 2 operators Cross:{crossover2} Mutation:{s2_mutatep} Model:{model2} Selection: {select2} Crossover probability: {s2_crossp}')
+    print(f'Species 1 FAST Cross: {crossover1} Mutation: {s1_mutatep} Model: {model1} Selection: {select1} Crossover probability: {s1_crossp}')
+    print(f'Species 2 TOPSIS Cross: {crossover2} Mutation: {s2_mutatep} Model: {model2} Selection: {select2} Crossover probability: {s2_crossp}')
 
     #   CREATE INSTANCE OF GA
     #   <placeholder> is used to send a tuple instead of a list, refer to: https://web.archive.org/web/20200221224620id_/http://effbot.org/zone/default-values.htm
-    s1 = Species(path, ("placeholder",population),selection=select1,crossover=crossover1,population_size=size)
-    s2 = Species(path, ("placeholder",population),selection=select2,crossover=crossover2,population_size=size)
+    s1 = Species(path, ("placeholder",population),select1,crossover1,size,"fast")
+    s2 = Species(path, ("placeholder",population),select2,crossover2,size,"topsis")
     
 
     #   COEVOLUTIVE PROCESS
@@ -146,9 +169,9 @@ if __name__ == "__main__":
     for _ in range (1,generations):
         #print('generation {}'.format(_))
 
-        #   genetic algorithm / generation of children
-        s1.generation(gen=_,mutation_probability=s1_mutatep,cross_probability=s1_crossp,model=model1)
-        s2.generation(gen=_,mutation_probability=s2_mutatep,cross_probability=s2_crossp,model=model2)
+        #   genetic algorithm / generation of children  mutation prob, cross prob, ML model, fitness metric, weights (if required)
+        s1.generation(s1_mutatep,s1_crossp,model1,1)
+        s2.generation(s2_mutatep,s2_crossp,model2,1,weights)
 
         #   competition
             #   retroalimentación

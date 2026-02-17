@@ -15,7 +15,7 @@ def chromosome_creation(c_size):
         chromosome.append(random.choice(genes))
     return chromosome
 
-def initial_population():
+def initial_population(path):
     #   vectors
     individuals=[]
     individual=[]

@@ -53,18 +53,13 @@ class Dominance:
             #     print(f'{i} dominated by {ii}')
         return front
 
-    def FAST(self,children_bag,parent_population,population_size):
+    def FAST(self,joined_population,population_size):
         #   define variables
-        metrics = len(children_bag) # number of elements in the list
-        joined_population = [list() for i in range(metrics)]
+        metrics = len(joined_population) # number of elements in the list
         new_population = [list() for i in range(metrics)]
         population_left = [list() for i in range(metrics)]
         pareto_front = list()
         n_fronts = list()
-
-        #   unify population
-        for i in range(metrics):
-            joined_population[i] = parent_population[i] + children_bag[i]
         
         population = copy.deepcopy(joined_population)
 
@@ -90,7 +85,7 @@ class Dominance:
                 #   add number of elements per front
                 n_fronts.append(len(front))
                 #   flag
-                print(f'Number of front {len(n_fronts)-1}, number of elements on pareto front {len(front)}')
+                print(f'Front {len(n_fronts)-1}, number of elements on pareto front {len(front)}')
 
         #   integrate new population
         for index in pareto_front:
@@ -98,7 +93,7 @@ class Dominance:
                 metric.append(joined_population[i][index])
         
         element=0
-        while len(new_population[0]) <= population_size:
+        while len(new_population[0]) < population_size:
             for i,metric in enumerate(new_population):
                 if element not in pareto_front:
                         metric.append(joined_population[i][element])

@@ -69,7 +69,7 @@ def roulette(population,size,fitMetric):
     if True:
         #   iterate over the population (using the probabilities)
         for i,probability in enumerate(probabilities):
-            x=random.randrange(0, fitness)
+            x=random.uniform(0, fitness)
             if probability > x:
                 parents_bag.append(i)
                 # #   add to parents bag: chromosome + metrics
