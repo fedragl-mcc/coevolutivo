@@ -3,6 +3,7 @@
 #   crossover                             #
 #   uniform_crossover                     #
 #   two_point                             #
+#   returns two offsprings binaryvectors (list)
 ###########################################
 import random
 

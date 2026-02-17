@@ -15,8 +15,47 @@ def chromosome_creation(c_size):
         chromosome.append(random.choice(genes))
     return chromosome
 
+def initial_population():
+    #   vectors
+    individuals=[]
+    individual=[]
+    accs=[]
+    aucs=[]
+    f1s=[]
 
-def initial_population(path):
+    #   create instance of dataset
+    dataset = Classifier(path)
+
+    #   number of features in dataset
+    c_size = dataset.features
+
+    #   tamaño de la población 2n 
+    population_size = c_size * 2 
+
+    #   create chromosomes (fitness not important)
+    ind = 0
+    while len(individuals) < population_size:
+        #   making sure there is at least one feature present (bc during coimbra dataset i had a lot of trouble)
+        while any(individual) == False: 
+            individual = chromosome_creation(c_size)
+
+        #   call methods from class classifier for fitness evaluation 
+        model = random.choice(['SVM','RF','KNN'])   #randomly select a ml model
+        dataset.model=model #set the model
+        dataset.Training(individual)
+        dataset.Classif_evaluation()
+        
+        #   evaluate chromosoma
+        individuals.append(individual.copy())	#	agregar cromosoma a la poblacion
+        accs.append(dataset.accuracy)
+        aucs.append(float(dataset.auc))
+        f1s.append(dataset.f1_score)
+
+    population = individuals,accs,aucs,f1s
+
+    return population
+
+def initial_population_fitness(path):
     individuals=[]
     individual=[]
     accs=[]
@@ -26,7 +65,7 @@ def initial_population(path):
     dataset = Classifier(path)
     c_size = dataset.features
     population_size = c_size * 2 #tamaño de la población 2n 
-    ind=0
+    ind = 0
 
     while len(individuals) < population_size:
         while any(individual) == False: #   there must be at least one feature present (bc during coimbra dataset i had a lot of trouble)

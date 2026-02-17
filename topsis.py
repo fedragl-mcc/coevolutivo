@@ -1,4 +1,4 @@
-#   receives: the whole population, usually children bag and original population, weights
+#   receives: the whole population, usually children bag and original population together, weights
 #   returns: a population thats been arranged
 import numpy as np
 def topsis(population,weights=None,shared=False): 

@@ -35,7 +35,9 @@ class genetic_algorithm:
         self.accuracy=None
 
 #   selection sends: type, population, metric   |  return index / list of indexes
-    def selection(self):
+    def selection(self,fitMetric):
+        #   if using a different metric
+        #   fitMetric = acc 2...
         parents_bag = selection_s(self.s_type, self.population,self.population_size)
         return parents_bag
 
@@ -74,9 +76,10 @@ class genetic_algorithm:
         gen_averages=[acc_mean,auc_mean,f1_mean]
         return gen_averages
 
-#   update population   receives individual = [[chromosome],acc,auc,f1] | returns: none
+#   DEPRECATED
+#   update population (via index available)  receives individual = [[chromosome],acc,auc,f1] | returns: none
     def update_population(self,new_individual,index=None):
-        if index!= None:
+        if index== None:
             index = random.choice(range(self.population_size))
 
         for i, individual in zip(range(self.population_size),self.population):
@@ -103,6 +106,7 @@ if __name__ == "__main__":
     species = genetic_algorithm(path,population,model='RF')
     species.s_type="uniform"
     species.c_type="uniform"
+    fitMetric = 1
 
     generations=5
 
@@ -114,13 +118,13 @@ if __name__ == "__main__":
         print('generation {}'.format(_))
 
         #   select parents and place them on a bag for crossover
-        parents_bag = species.selection()
+        parents_bag = species.selection(fitMetric)
 
         #   perform crossover to generate two new chromosomes per couple of parents
         children = list()
         index2 = len(parents_bag)
-        for _ in range(len(parents_bag)//2):
-            index1 = _  #    from the beginning
+        half_pointer=len(parents_bag)//2
+        for index1 in range(half_pointer):
             child1,child2 = species.crossover(population[0][index1],population[0][index2])  #   call for crossover
             children.append(child1)
             children.append(child2)

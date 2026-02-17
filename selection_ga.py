@@ -5,22 +5,23 @@
 #   selection types                    
 #       roulette_selection             
 #       tournament_selection           
-#       uniform_selection      
+#       uniform_selection
+#   fitmetric int()     : tells selection which metric use to evaluate probabilities
 # returns
 #   parents_bag = list of indexes   
 #######################################
 import random
 from random import getrandbits
 
-def selection_s(type,population,size):
+def selection_s(type,population,size,fitMetric=1):
     if type=="uniform":
         parents_bag = uniform(population,size)
     
     elif type == "roulette":
-        parents_bag = roulette(population,size)
+        parents_bag = roulette(population,size,fitMetric)
     
     elif type=="tournament":
-        parents_bag = tournament(population,size)
+        parents_bag = tournament(population,size,fitMetric)
 
     return parents_bag
 
@@ -42,12 +43,12 @@ def uniform(population,size):
                 #     row.append(population[x][i])
     return parents_bag
 
-def roulette(population,size):
+def roulette(population,size,fitMetric):
     #   calcular la probabilidad de cada individuo
-    fitness=sum(population[1])
+    fitness=sum(population[fitMetric])
     probabilities=[]
     for _ in range (size):
-        probabilities.append(population[1][_]/fitness)
+        probabilities.append(population[fitMetric][_]/fitness)
 
     if False:
         p1,p2 = random.choices(range(size),weights=probabilities,k=2)
@@ -71,14 +72,14 @@ def roulette(population,size):
             x=random.randrange(0, fitness)
             if probability > x:
                 parents_bag.append(i)
-                # #   add to parents bag
+                # #   add to parents bag: chromosome + metrics
                 # for x,row in enumerate(parents_bag):
                 #     row.append(population[x][i])
     return parents_bag
 
-def tournament(population,size):
+def tournament(population,size,fitMetric):
     parents_bag = list()
-    fitness = population[1] #choosing metric
+    fitness = population[fitMetric] #choosing metric
 
     if False:
         opt1,opt2,opt3,opt4 = random.sample(range(size), k=4)
