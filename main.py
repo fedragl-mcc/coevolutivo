@@ -6,6 +6,7 @@ from FAST import Dominance
 
 import random
 import copy
+import math
 import time
 #   data handling
 import csv
@@ -75,7 +76,7 @@ class Species:
                 self.new_individuals[2].append(0)
                 self.new_individuals[3].append(0)
     
-    #   SELECT POPULATION, receieves: type(fast/topsis), weights (for topsis)
+    #   SELECT POPULATION, weights (for topsis)
     def merge_populations(self,weights):
         #   unify population =======================================================
         joined_population = [list() for i in range(self.metrics)]
@@ -134,16 +135,18 @@ def operators_parameters():
     weights = random.choice(weights)
 
     return s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2,weights
-
+def compete (individual,opponent,metrics):
+    return [1 if individual[i] > opponent[i] else 0 for i in range(metrics)]
 if __name__ == "__main__":
     #   VARIABLES
-    generations=5
+    generations=6
     # path = 'D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_coimbra\dataR2.csv'
     path = 'Instancias/DS_breast+cancer+wisconsin+diagnostic/wdbc.csv'
 
     #   INITIAL POPULATION:         create initial population, send dataset path, return population
     population = initial_population(path)
-    size = len(population[0])   #   population size 2(number of features) modify in initial_population()
+    popSize = len(population[0])   #   population size 2(number of features) modify in initial_population()
+    metrics = len(population)-1
     
 
     #   RANDOMLY SET OPERATORS:     for each species (use a function to prevent clutter)
@@ -155,8 +158,8 @@ if __name__ == "__main__":
 
     #   CREATE INSTANCE OF GA
     #   <placeholder> is used to send a tuple instead of a list, refer to: https://web.archive.org/web/20200221224620id_/http://effbot.org/zone/default-values.htm
-    s1 = Species(path, ("placeholder",population),select1,crossover1,size,"fast")
-    s2 = Species(path, ("placeholder",population),select2,crossover2,size,"topsis")
+    s1 = Species(path, ("placeholder",population),select1,crossover1,popSize,"fast")
+    s2 = Species(path, ("placeholder",population),select2,crossover2,popSize,"topsis")
     
 
     #   COEVOLUTIVE PROCESS
@@ -166,7 +169,7 @@ if __name__ == "__main__":
     winners=list()
 
     #   GENERATIONS
-    for _ in range (1,generations):
+    for gen in range (1,generations):
         #print('generation {}'.format(_))
 
         #   genetic algorithm / generation of children  mutation prob, cross prob, ML model, fitness metric, weights (if required)
@@ -174,5 +177,45 @@ if __name__ == "__main__":
         s2.generation(s2_mutatep,s2_crossp,model2,1,weights)
 
         #   competition
+        if gen//5 == 0:
+            #   using random sample competition
+            sampleSize = round(math.sqrt(popSize))
+            scores1=list()
+            scores2=list()
+
+            #   species 1 against 2
+            for i in range(popSize):
+                individual = [metric[i] for metric in (s1.population)]
+                samplePop2 = random.sample(range(0,popSize-1),k = sampleSize)
+                for opp in samplePop2:
+                    opponent = [metric[opp] for metric in (s2.population)]
+                    score = compete(individual, opponent,metrics)
+                    scores1.append(score)
+
+            #   species 2 against 1
+            for i in range(popSize):
+                individual = [metric[i] for metric in (s2.population)]
+                samplePop1 = random.sample(range(0,popSize-1),k = sampleSize)
+                for opp in samplePop2:
+                    opponent = [metric[opp] for metric in (s1.population)]
+                    score = compete(individual, opponent,metrics)
+                    scores2.append(score)
             #   retroalimentación
             #   species restart
+
+    finalScores1 = [int() for i in range(metrics)]
+    finalScores2 = [int() for i in range(metrics)]
+    for score1,score2 in zip(scores1,scores2):
+        finalScores1[0]=score1[0]+finalScores1[0]
+        finalScores1[1]=score1[1]+finalScores1[1]
+        finalScores1[2]=score1[2]+finalScores1[2]
+        finalScores2[0]=score2[0]+finalScores2[0]
+        finalScores2[1]=score2[1]+finalScores2[1]
+        finalScores2[2]=score2[2]+finalScores2[2]
+
+    print(finalScores1)
+    print(len(scores1))
+    print(finalScores2)
+    print(len(scores2))
+            
+
