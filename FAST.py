@@ -68,7 +68,7 @@ class Dominance:
             # call frontier normally (it expects list of lists)
             front = self.frontier(population, metrics)
             if len(front) == 0:
-                print("everyone is on the pareto front")
+                # print("everyone is on the pareto front")
                 break
             else:
                 #   store elements 
@@ -85,7 +85,7 @@ class Dominance:
                 #   add number of elements per front
                 n_fronts.append(len(front))
                 #   flag
-                print(f'Front {len(n_fronts)-1}, number of elements on pareto front {len(front)}')
+                # print(f'Front {len(n_fronts)-1}, number of elements on pareto front {len(front)}')
 
         #   integrate new population
         for index in pareto_front:

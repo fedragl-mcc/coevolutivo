@@ -31,6 +31,9 @@ class Species:
         self.species.c_type=crossover
         self.dominanceT = dominanceT
 
+        #   Counter variables
+        self.evolution=list()
+
     #   GENERATE CHILDREN
     def offsprings(self,fitMetric):
     #   receives:     fitMetric default is 1 for acc, tells selection method which metric consider
@@ -43,12 +46,11 @@ class Species:
         parents1 = parents_bag[:crossings]
         parents2 = parents_bag[crossings:]
         for parent1,parent2 in zip(parents1,reversed(parents2)):
-            p1 = population[0][parent1]
-            p2 = population[0][parent2]
+            p1 = self.population[0][parent1]
+            p2 = self.population[0][parent2]
             off1,off2 = self.species.crossover(p1,p2)
             children_bag.append(off1)
             children_bag.append(off2)
-            parent2-=1
         #   mutation
         mutation_prob = self.species.mutation_probability
         for index, child in enumerate(children_bag):
@@ -85,7 +87,7 @@ class Species:
         #   ========================================================================
         #   use fast ===============================================================
         if self.dominanceT == "fast":
-            print("New gen: pareto front")
+            # print("New gen: pareto front")
             d=Dominance()
             self.population=d.FAST(joined_population,self.population_size)
         #   ========================================================================
@@ -101,11 +103,11 @@ class Species:
         return
 
     #   A GENERATION: setting instance parameters, creation (selection,crossover,mutation), evaluation of offsprings
-    def generation(self,mutation_probability,cross_probability,model,fitMetric=1,weights=None):
+    def generation(self,parameters,fitMetric=1,weights=None):
         #   set parameters
-        self.species.model=model
-        self.species.cross_probability=cross_probability
-        self.species.mutation_probability=mutation_probability
+        self.species.cross_probability=parameters[0]
+        self.species.mutation_probability=parameters[1]
+        self.species.model=parameters[2]
 
         #   generate offsprings
         children_bag=self.offsprings(fitMetric)
@@ -113,9 +115,28 @@ class Species:
         #   evaluate the children an store their fitness
         self.evaluate_children(children_bag)
 
+        #   keep track of evolution
+        size=len(children_bag)
+        self.evolution.append(size)
+
         #   chop population to fit size (final population)
         self.merge_populations(weights)
     
+    def elite_individuals(self,percentage):
+        #get the elite individuals in the current population
+        #there must already be a function that does that but cannot remember
+        pass
+
+    #   INTEGRATE MULTIPLE INIDVIDUALS: from other species add different individuals
+        #feedIndividuals must contain [chromopsomes][acc][auc][f1]
+    def repopulation(self, feededPop):
+        #need how many elements
+        newPopSize=len(feededPop[0])
+        exterminate=random.sample(range(0,popSize-1),newPopSize)
+        for index,individual in enumerate(exterminate):
+            for currentPop, feededIndividuals in zip(self.population,feededPop):
+                currentPop[individual]= feededIndividuals[index]
+
 def operators_parameters():
     #operators parameters
     #   species 1
@@ -135,11 +156,35 @@ def operators_parameters():
     weights = random.choice(weights)
 
     return s1_crossp,s1_mutatep,model1,select1,crossover1,s2_crossp,s2_mutatep,model2,select2,crossover2,weights
+
+def random_operators(instance, weight = False):
+    if instance == "create":
+        select = random.choice(["uniform","tournament","roulette"])
+        crossover = random.choice(["uniform","two_point"])
+        return select,crossover
+
+    if instance == "set":
+        crossp = random.choice([.3,.6,.9,.2,.4,.8])
+        mutatep= random.choice([.7,.4,.1,.8,.6,.2])
+        model =  random.choice(["RF","KNN","SVM"])
+        if weight:
+            weight_select=[[3,3,9],[3,9,3],[9,3,3]]
+            weights = random.choice(weight_select)
+            return crossp,mutatep,model,weights
+        else:
+            return crossp,mutatep,model
+
 def compete (individual,opponent,metrics):
     return [1 if individual[i] > opponent[i] else 0 for i in range(metrics)]
+
+
 if __name__ == "__main__":
-    #   VARIABLES
+    #   Main variables
     generations=6
+    predator = 1
+    preys = 2
+
+    #   Declare path instance
     # path = 'D:\Fedra\iCloudDrive\Mcc\Tesis\Instancias\\breast_cancer_coimbra\dataR2.csv'
     path = 'Instancias/DS_breast+cancer+wisconsin+diagnostic/wdbc.csv'
 
@@ -173,8 +218,13 @@ if __name__ == "__main__":
         #print('generation {}'.format(_))
 
         #   genetic algorithm / generation of children  mutation prob, cross prob, ML model, fitness metric, weights (if required)
-        s1.generation(s1_mutatep,s1_crossp,model1,1)
-        s2.generation(s2_mutatep,s2_crossp,model2,1,weights)
+        #select which is going to be a prey and predator
+        #select which trait are they gonna focus on
+        ## get growth rate from these
+        s1_parameters= [s1_crossp,s1_mutatep,model1]
+        s2_parameters =[s2_crossp,s2_mutatep,model2]
+        s1.generation(s1_parameters,1)
+        s2.generation(s2_parameters,1,weights)
 
         #   competition
         if gen//5 == 0:
@@ -201,21 +251,4 @@ if __name__ == "__main__":
                     score = compete(individual, opponent,metrics)
                     scores2.append(score)
             #   retroalimentación
-            #   species restart
-
-    finalScores1 = [int() for i in range(metrics)]
-    finalScores2 = [int() for i in range(metrics)]
-    for score1,score2 in zip(scores1,scores2):
-        finalScores1[0]=score1[0]+finalScores1[0]
-        finalScores1[1]=score1[1]+finalScores1[1]
-        finalScores1[2]=score1[2]+finalScores1[2]
-        finalScores2[0]=score2[0]+finalScores2[0]
-        finalScores2[1]=score2[1]+finalScores2[1]
-        finalScores2[2]=score2[2]+finalScores2[2]
-
-    print(finalScores1)
-    print(len(scores1))
-    print(finalScores2)
-    print(len(scores2))
-            
 

@@ -15,7 +15,7 @@ def chromosome_creation(c_size):
         chromosome.append(random.choice(genes))
     return chromosome
 
-def initial_population(path):
+def initial_population(path,timeSize=2):
     #   vectors
     individuals=[]
     individual=[]
@@ -30,7 +30,7 @@ def initial_population(path):
     c_size = dataset.features
 
     #   tamaño de la población 2n 
-    population_size = c_size * 2 
+    population_size = c_size * timeSize 
 
     #   create chromosomes (fitness not important)
     ind = 0
