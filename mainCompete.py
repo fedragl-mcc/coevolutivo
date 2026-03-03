@@ -1,5 +1,6 @@
 from main import Species
 from main import random_operators as randOperate
+from main import join_populations as joinPop
 #   import modules part of the algoritthm
 from genetic_algorithm import genetic_algorithm as ga
 from ga_initial_population import initial_population
@@ -68,7 +69,7 @@ if __name__ == "__main__":
     #   COEVOLUTIVE PROCESS
     #==========================================================================
     #competition variables
-    predation = 0
+    rePopPerc = 10  #percentage for repopulation
 
 
     #   GENERATIONS
@@ -94,9 +95,9 @@ if __name__ == "__main__":
             popPrey1 = species[1].population
             popPrey2 = species[2].population
 
-
             #   currently  a prey population against samples of predator's population, 
             #   but i could also try a whole population agaisnts the other
+            #   vs1: prey 1 vs predator
             predWins=0
             preyWins=0
             for ind in range(popSize):
@@ -109,14 +110,7 @@ if __name__ == "__main__":
                         predWins+=1
                     else:
                         preyWins+=1
-            #   actual number of versus = sampleSize * len(preyPop[0]){preyPopSize}
-            if preyWins > predWins:
-                print(f'Prey 1 escapes {preyWins}/{sampleSize*popSize}')
-                #print(species[1].evolution)
-            else:
-                print(f'Predator captures {predWins}/{sampleSize*popSize}')
-                #print(species[0].evolution)
-            #   second vs
+            #   vs2: prey 2 vs predator
             predBWins=0
             prey2Wins=0
             for ind in range(popSize):
@@ -129,14 +123,33 @@ if __name__ == "__main__":
                         predBWins+=1
                     else:
                         prey2Wins+=1
-            #   actual number of versus = sampleSize * len(preyPop[0]){preyPopSize}
-            if prey2Wins > predBWins:
-                print(f'prey 2 escapes {prey2Wins}/{sampleSize*popSize}')
-                #print(species[2].evolution)
-            else:
-                print(f'Predator captures {predBWins}/{sampleSize*popSize}')
-                #print(species[0].evolution)
-            predation+=1
 
             #   retroalimentación
-            #   how is the outcome of the competition going to affect the species?
+            vs1out = True if preyWins > predWins else False #false means pred won
+            vs2out = True if prey2Wins > predWins else False #false means pred won
+            predWon = (not vs1out) and (not vs2out)
+
+            if predWon:
+                #he ought to give to both the preys
+                print("predator won")
+                elitePop = species[0].elite_individuals(rePopPerc)
+                species[1].repopulation(elitePop)
+                species[2].repopulation(elitePop)
+            elif vs1out:
+                print("prey2 lost to pred")
+                elitePop = species[1].elite_individuals(rePopPerc)
+                species[2].repopulation(elitePop)
+            elif vs2out:
+                print("prey1 lost to pred")
+                elitePop = species[2].elite_individuals(rePopPerc)
+                species[1].repopulation(elitePop)
+            else:
+                print("predator lost to preys")
+                elitePop1 = species[1].elite_individuals(rePopPerc//2)
+                elitePop2 = species[2].elite_individuals(rePopPerc//2)
+                elitePop = joinPop(elitePop,elitePop2)
+                species[0].repopulation(elitePop)
+    
+    for S in (species):
+        print([elite[:rePopPerc] for elite in S.population])
+        

@@ -99,7 +99,6 @@ class Species:
         #   after merging population clear new_indiviuals bag ======================
         [col.clear() for col in self.new_individuals]
         # ==========================================================================
-
         return
 
     #   A GENERATION: setting instance parameters, creation (selection,crossover,mutation), evaluation of offsprings
@@ -125,17 +124,28 @@ class Species:
     def elite_individuals(self,percentage):
         #get the elite individuals in the current population
         #there must already be a function that does that but cannot remember
-        pass
+        d=Dominance()
+        sizeElite = self.population_size//percentage
+        elitePop = d.FAST(self.population,sizeElite)
+        #elitePop = [column[:sizeElite]]
+        return elitePop
 
     #   INTEGRATE MULTIPLE INIDVIDUALS: from other species add different individuals
         #feedIndividuals must contain [chromopsomes][acc][auc][f1]
     def repopulation(self, feededPop):
         #need how many elements
         newPopSize=len(feededPop[0])
-        exterminate=random.sample(range(0,popSize-1),newPopSize)
+        currentPopSize = len(self.population[0])
+        exterminate=random.sample(range(0,currentPopSize-1),newPopSize)
         for index,individual in enumerate(exterminate):
             for currentPop, feededIndividuals in zip(self.population,feededPop):
-                currentPop[individual]= feededIndividuals[index]
+                currentPop[individual]= copy.deepcopy(feededIndividuals[index])
+
+def join_populations(pop1,pop2):
+    joined_population = [list() for i in range(len(pop1[0]))]
+    for i in range(len(pop1[0])):
+        joined_population[i] = pop1[i] + pop2[i]
+    return joined_population
 
 def operators_parameters():
     #operators parameters
