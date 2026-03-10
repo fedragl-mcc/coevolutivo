@@ -134,7 +134,7 @@ class Species:
         #feedIndividuals must contain [chromopsomes][acc][auc][f1]
     def repopulation(self, feededPop):
         #need how many elements
-        newPopSize=len(feededPop[0])
+        newPopSize=len(feededPop)
         currentPopSize = len(self.population[0])
         exterminate=random.sample(range(0,currentPopSize-1),newPopSize)
         for index,individual in enumerate(exterminate):
@@ -142,8 +142,8 @@ class Species:
                 currentPop[individual]= copy.deepcopy(feededIndividuals[index])
 
 def join_populations(pop1,pop2):
-    joined_population = [list() for i in range(len(pop1[0]))]
-    for i in range(len(pop1[0])):
+    joined_population = [list() for i in range(len(pop1))]
+    for i in range(len(pop1)):
         joined_population[i] = pop1[i] + pop2[i]
     return joined_population
 

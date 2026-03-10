@@ -31,22 +31,22 @@ def capture_rate(prey_traits, predator_traits, a0=1.0, theta=5.0, weights=None):
     
     # Logistic transformation
     capture = a0 / (1 + np.exp(-theta * S))
-    # print(round(S*100))
-    # print(round(capture*100))
 
     winner = (1 if S > 0 else 0)    #send 1 if winner is predator
     
-    return winner
+    return winner,capture
 
 if __name__ == "__main__":
     #   Declare path instance
     path = 'Instancias/DS_breast+cancer+wisconsin+diagnostic/wdbc.csv'
     #   ===============================================================
     #   Main variables
-    generations=30
-    timeSize = 2    #   population = timeSize*(number of features), timeSize default is 2
+    generations=100
+    competition = 10
+    timeSize = 2    #   population = timeSize*(number of features), default is 2
     numPredators = 1
     numPreys = 2
+    numPredation = 1
 
     #   INITIAL POPULATION:         create initial population, send dataset path, return population
     population = initial_population(path,timeSize) 
@@ -70,8 +70,8 @@ if __name__ == "__main__":
     #==========================================================================
     #competition variables
     rePopPerc = 10  #percentage for repopulation
-
-
+    start_time = time.time()
+    
     #   GENERATIONS
     for generation in range (1,generations):
         #print('generation {}'.format(_))
@@ -80,13 +80,14 @@ if __name__ == "__main__":
         #   Predator
         species[0].generation(speOperators[0],1)    #   focuses on acc
         #   Preys
-        species[1].generation(speOperators[1],1)    #   focuses on auc
+        species[1].generation(speOperators[1],2,)    #   focuses on auc
         species[2].generation(speOperators[2],3)    #   focuses on f1
 
         #   [MISSING] get growth rate from these
 
         #   Competition
-        if generation%5 == 0:
+        if generation%competition == 0:
+            print("predation:",numPredation)
             #   using prey/predator competition
             sampleSize = round(math.sqrt(popSize))
 
@@ -105,7 +106,7 @@ if __name__ == "__main__":
                 samplePred = random.sample(range(0,popSize-1),k = sampleSize)
                 for versus in samplePred:
                     indPred = [metric[versus] for metric in popPredator[1:]]    #   taking only the metrics from the individual
-                    win = capture_rate(indPrey,indPred)
+                    win,capture = capture_rate(indPrey,indPred)
                     if win == 1:
                         predWins+=1
                     else:
@@ -118,16 +119,16 @@ if __name__ == "__main__":
                 samplePred = random.sample(range(0,popSize-1),k = sampleSize)
                 for versus in samplePred:
                     indPred = [metric[versus] for metric in popPredator[1:]]    #   taking only the metrics from the individual
-                    win = capture_rate(indPrey,indPred)
+                    win,capture = capture_rate(indPrey,indPred)
                     if win == 1:
                         predBWins+=1
                     else:
                         prey2Wins+=1
 
             #   retroalimentación
-            vs1out = True if preyWins > predWins else False #false means pred won
-            vs2out = True if prey2Wins > predWins else False #false means pred won
-            predWon = (not vs1out) and (not vs2out)
+            vs1out = preyWins < predWins
+            vs2out = prey2Wins < predBWins 
+            predWon = vs1out and vs2out
 
             if predWon:
                 #he ought to give to both the preys
@@ -135,21 +136,32 @@ if __name__ == "__main__":
                 elitePop = species[0].elite_individuals(rePopPerc)
                 species[1].repopulation(elitePop)
                 species[2].repopulation(elitePop)
-            elif vs1out:
-                print("prey2 lost to pred")
-                elitePop = species[1].elite_individuals(rePopPerc)
-                species[2].repopulation(elitePop)
-            elif vs2out:
-                print("prey1 lost to pred")
-                elitePop = species[2].elite_individuals(rePopPerc)
-                species[1].repopulation(elitePop)
             else:
-                print("predator lost to preys")
-                elitePop1 = species[1].elite_individuals(rePopPerc//2)
-                elitePop2 = species[2].elite_individuals(rePopPerc//2)
-                elitePop = joinPop(elitePop,elitePop2)
-                species[0].repopulation(elitePop)
+                if not vs1out and not vs2out:
+                    print("predator lost to preys")
+                    elitePop1 = species[1].elite_individuals(rePopPerc//2)
+                    elitePop2 = species[2].elite_individuals(rePopPerc//2)
+                    elitePop = joinPop(elitePop1,elitePop2)
+                    species[0].repopulation(elitePop)
+                elif vs1out:
+                    print("prey2 lost to pred")
+                    elitePop = species[1].elite_individuals(rePopPerc)
+                    species[2].repopulation(elitePop)
+                elif vs2out:
+                    print("prey1 lost to pred")
+                    elitePop = species[2].elite_individuals(rePopPerc)
+                    species[1].repopulation(elitePop)
+                    
+            equilibrium = ((sampleSize*popSize)/10)
+            if (-equilibrium <= (preyWins - predWins)  <= equilibrium) and (-equilibrium <= (prey2Wins - predWins )  <= equilibrium):
+                break
+
+            numPredation+=1
     
+    #elite species
     for S in (species):
         print([elite[:rePopPerc] for elite in S.population])
-        
+
+    end = time.time()
+    elapsed=end-start_time
+    print((end - start_time)/60)
