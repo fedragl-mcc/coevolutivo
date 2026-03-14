@@ -2,7 +2,7 @@
     last edit: 28/09/2025"""
 # modulo_ml.py
 
-from preprocessing import Preprocessing
+from preprocessing_uci import Preprocessing
 from models import Models
 
 #   data handling
@@ -76,23 +76,24 @@ class Classifier:
     def Classif_evaluation(self):
         #   WBDC: answer to the "ValueError: Classification metrics can't handle a mix of unknown and binary targets"
         #   had to use astype bc self.y_test is dtype=object even after .to_numpy(), also had to save it to themselves again otherwise change does not happen
-        # try:
-        #     self.y_pred = self.y_pred.astype(int)##comment: wbdc   uncomment:bc_uci, [coimbra: AttributeError: 'str' object has no attribute 'astype']  
-        # except AttributeError:
-        #     print(self.y_pred)
+        try:
+            self.y_pred = self.y_pred.astype(int)##comment: wbdc   uncomment:bc_uci, [coimbra: AttributeError: 'str' object has no attribute 'astype']  
+        except AttributeError:
+            print(self.y_pred)
 
-        self.y_test = self.y_test.astype(int) #uncomment: wbdc     comment:bc_uci, coimbra
+        self.y_test = self.y_test.astype(int) #uncomment: wbdc  ,bc_uci   comment:, coimbra
         # self.y_test = self.y_test.to_numpy()
         #_______________  
-
         self.accuracy = accuracy_score(self.y_test, self.y_pred)
+        #agregar un try catch en caso de que : ValueError: Only one class present in y_true. ROC AUC score is not defined in that case.
+        #lo ocurrido fue que y pred predijo ambas clases, pero y_test en realidad solo contenia de la clase 2 [https://stackoverflow.com/questions/45139163/roc-auc-score-only-one-class-present-in-y-true]
         self.auc = roc_auc_score(self.y_test, self.y_pred)
         self.f1_score = f1_score(self.y_test, self.y_pred)
         
 if __name__ == "__main__":
     print("Machinelearning starting...")
-    test = Classifier('Instancias/DS_breast+cancer+wisconsin+diagnostic/wdbc.csv')
-    chromosome=[1,0,1,0,0,0,0,1,1]
+    test = Classifier('D:\Fedra\coevolutivo\Instancias\\breast_cancer_uci\\breast_cancer.csv')
+    chromosome=[1,0,1,0,0,0,0,1,0]
     test.model="SVM"
     test.Training(chromosome)
     print(test.y_train)

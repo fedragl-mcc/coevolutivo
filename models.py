@@ -11,8 +11,8 @@ class Models:
         
         
     def Select_model(self,model):
-        #   wbcd (diagnostic)
-        self.y_train = self.y_train.astype(int)
+        # #   wbcd (diagnostic)
+        # self.y_train = self.y_train.astype(int)
         #______________________________________
         if model == "SVM":
             y_pred=self.SVM()

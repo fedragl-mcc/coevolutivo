@@ -125,7 +125,7 @@ class Species:
         #get the elite individuals in the current population
         #there must already be a function that does that but cannot remember
         d=Dominance()
-        sizeElite = self.population_size//percentage
+        sizeElite = round(self.population_size*(percentage/100))
         elitePop = d.FAST(self.population,sizeElite)
         #elitePop = [column[:sizeElite]]
         return elitePop
@@ -134,7 +134,7 @@ class Species:
         #feedIndividuals must contain [chromopsomes][acc][auc][f1]
     def repopulation(self, feededPop):
         #need how many elements
-        newPopSize=len(feededPop)
+        newPopSize=len(feededPop[0])
         currentPopSize = len(self.population[0])
         exterminate=random.sample(range(0,currentPopSize-1),newPopSize)
         for index,individual in enumerate(exterminate):
