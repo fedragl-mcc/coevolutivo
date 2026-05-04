@@ -39,7 +39,8 @@ def capture_rate(prey_traits, predator_traits, a0=1.0, theta=5.0, weights=None):
 if __name__ == "__main__":
     #   Declare path instance
     # path = 'Instancias/DS_breast+cancer+wisconsin+diagnostic/wdbc.csv'
-    path = 'D:\Fedra\coevolutivo\Instancias\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv'
+    # path = 'D:\Fedra\coevolutivo\Instancias\DS_breast+cancer+wisconsin+diagnostic\wdbc.csv'
+    path = 'D:\Fedra\MCC\proyecto\BCP-GA-CRO\data\\WBC.Cleaned.csv'
     #   ===============================================================
     #   Main variables
     timeSize = 2    #   population = timeSize*(number of features), default is 2
@@ -48,12 +49,12 @@ if __name__ == "__main__":
     #   counters
     numPredation = 1    #competitions
 
-    generationsList=[500]
+    generationsList=[100,1]
     compGen = 10 
     # competition = generations//compGen # meaning that every compGen% generations theres a competition 
 
     for generations in generationsList:
-        for test in range(24,30):
+        for test in range(0,1):
             #   INITIAL POPULATION:         create initial population, send dataset path, return population
             population = initial_population(path,timeSize) 
             popSize = len(population[0])   
@@ -180,7 +181,7 @@ if __name__ == "__main__":
                 version = now.strftime("%m%d %H%M%S")
                 eliteSize=round((rePopPerc/100)*popSize)
 
-                route = f'Experimentacion\\wdbc_{generations}_{test}.csv'
+                route = f'Experimentacion\\wdbcvsCROdata_{generations}_{test}.csv'
 
                 with open(route, 'w', newline='') as csv_out:
                     #   Create a CSV writer

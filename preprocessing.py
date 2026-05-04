@@ -31,6 +31,9 @@ class Preprocessing:
         self.chromosome = None  #   features
         self.X_chromosome = None #  selected features
 
+        #   CRO
+        self.df=None
+
     #   read CSV and turn into a dataframe
     def ReadCSV(self):
         #wisconsin
@@ -39,12 +42,15 @@ class Preprocessing:
     #   target & feature split 
     # # (WBCD)
     def TF_Split(self):
-        #   WBC
-        self.df.iloc[:,1] = self.df.iloc[:,1].map({'M': 1, 'B': 0}) #   Convertir la columna 'Diagnóstico' a valores numéricos
-        self.y=self.df.iloc[:,1].copy() # set target column into its own df
+        # #   WBC
+        # self.df.iloc[:,1] = self.df.iloc[:,1].map({'M': 1, 'B': 0}) #   Convertir la columna 'Diagnóstico' a valores numéricos
+        # self.y=self.df.iloc[:,1].copy() # set target column into its own df
         
-        self.X=self.df.drop(self.df.columns[[0,1]], axis=1).copy() #dropping id[0] and target[1]
-        self.features = len(self.X.columns)
+        # self.X=self.df.drop(self.df.columns[[0,1]], axis=1).copy() #dropping id[0] and target[1]
+        # self.features = len(self.X.columns)
+        #   using cro data
+        self.df = pd.read_csv(self.path, header=0)
+        self.features=(self.df.shape[1])
 
     # # # # # (bc coimbra)
     # def TF_Split(self):
@@ -118,18 +124,31 @@ class Preprocessing:
     #   standarization
     #  wbdc
     def Standardization(self):
-        #   Seleccionar columnas categoricas
-        num_cols = self.X.select_dtypes(include=['number']).columns  # Solo numéricos
+        # #   Seleccionar columnas categoricas
+        # num_cols = self.X.select_dtypes(include=['number']).columns  # Solo numéricos
 
-        #   label encoder
-        le = LabelEncoder()
-        for col in self.X.select_dtypes(exclude=['number']).columns:
-            self.X[col] = le.fit_transform(self.X[col])
+        # #   label encoder
+        # le = LabelEncoder()
+        # for col in self.X.select_dtypes(exclude=['number']).columns:
+        #     self.X[col] = le.fit_transform(self.X[col])
 
-        #   standard scalation
-        escalador = StandardScaler()
-        self.X[num_cols] = escalador.fit_transform(self.X[num_cols])
+        # #   standard scalation
+        # escalador = StandardScaler()
+        # self.X[num_cols] = escalador.fit_transform(self.X[num_cols])
+
+        #   CRO standardization
+        # Get all columns except the 'Outcome' column
+        columns_to_scale = self.df.columns[self.df.columns != 'Outcome']
+
+        scaler = StandardScaler()
+
+        # Loop through each column, reshape, fit and transform
+        for column in columns_to_scale:
+            column_data = np.array(self.df[column]).reshape(-1, 1)
+            self.df[column] = scaler.fit_transform(column_data)
         
+        self.X = self.df
+        self.y = self.df['Outcome']
     #   bc_uci 
     # def Standardization(self):
     #     #   Seleccionar columnas 
@@ -145,9 +164,9 @@ class Preprocessing:
     def Preprocess(self):
         self.ReadCSV()
         self.TF_Split()
-        self.Missing_values()
+        # self.Missing_values()
         self.Standardization()
-        self.Outlier_detection() #    uncomment: wbdc,bc_coimbria,seer  |    comment for bc_uci
+        # self.Outlier_detection() #    uncomment: wbdc,bc_coimbria,seer  |    comment for bc_uci
 
 if __name__ == "__main__":
     print("Preprocessing starting...")

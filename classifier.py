@@ -2,7 +2,7 @@
     last edit: 28/09/2025"""
 # modulo_ml.py
 import time
-from preprocessing_uci import Preprocessing
+from preprocessing import Preprocessing
 from models import Models
 
 #   data handling
@@ -131,12 +131,3 @@ if __name__ == "__main__":
         end = time.time()
         elapsed=round(((end-start_time)/60))
         meanTime.append(elapsed)
-acc=round(sum(acc)/len(acc),4)   
-auc=round(sum(auc)/len(auc),4)   
-f1=round(sum(f1)/len(f1),4)
-time=(sum(meanTime)/len(meanTime))
-
-print(acc)
-print(auc)
-print(f1)
-print(time)
